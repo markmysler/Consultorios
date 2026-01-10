@@ -1,7 +1,7 @@
 <template>
-    <header>
+    <header class="flex justify-center items-center bg-secondary py-4 lg:py-6">
         <NuxtLink :to="ROUTE_NAMES.LOGIN">
-            <HeadingH1>App Consultorios Externos</HeadingH1>
+            <HeadingH1>Consultorios Externos</HeadingH1>
         </NuxtLink>
     </header>
 </template>
