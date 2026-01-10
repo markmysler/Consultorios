@@ -1,11 +1,12 @@
 <template>
-    <header>
-        <button @click="toggleDrawer">
-            <Icon name="tabler:menu-2" />
+    <header class="flex justify-center items-center bg-secondary py-4 lg:py-6">
+        <button @click="toggleDrawer"
+            class="flex flex-col justify-center items-center gap-1 absolute left-6 lg:left-24 transition-all duration-300">
+            <Icon name="tabler:menu-2" class="w-6 h-6 lg:w-9 lg:h-9 text-primary" />
         </button>
 
         <NuxtLink :to="ROUTE_NAMES.HOME">
-            <HeadingH1>App Consultorios Externos</HeadingH1>
+            <HeadingH1>Consultorios Externos</HeadingH1>
         </NuxtLink>
 
         <NavDrawer :is-open="isDrawerOpen" @close="closeDrawer" />
