@@ -1,0 +1,68 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2025-07-15',
+  runtimeConfig: {
+    public: {
+      supabase: { url: process.env.SUPABASE_URL }
+    }
+  },
+  devtools: { enabled: true },
+  css: ['~/assets/css/main.css'],
+  modules: [
+    '@nuxt/fonts',
+    '@nuxt/icon',
+    '@nuxtjs/supabase',
+    '@nuxtjs/tailwindcss',
+  ],
+  supabase: {
+    redirectOptions: {
+      login: '/login',
+      callback: '/callback',
+      exclude: [
+        '/login',
+        '/register',
+        '/forgot-password',
+        '/forgot-password-confirmation',
+        '/reset-password',
+      ]
+    },
+    cookieOptions: {
+      maxAge: 60 * 60 * 8,
+      secure: process.env.NODE_ENV === 'production'
+    },
+    clientOptions: {
+      auth: {
+        persistSession: true,
+        detectSessionInUrl: true,
+        autoRefreshToken: true,
+        storage: undefined
+      }
+    },
+  },
+  fonts: {
+    defaults: {
+      weights: [300, 400, 500, 700, 900],
+    }
+  },
+  icon: {
+    size: '1rem',
+    class: 'tablerIcon',
+    serverBundle: {
+      collections: ['tabler'],
+    }
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['pinia']
+    },
+    build: {
+      cssCodeSplit: true,
+      chunkSizeWarningLimit: 1000,
+    },
+    server: {
+      fs: {
+        strict: false
+      }
+    }
+  },
+})
