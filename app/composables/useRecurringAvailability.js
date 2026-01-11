@@ -12,6 +12,7 @@ export function useRecurringAvailability() {
       .from('recurring_availability')
       .select(`
         id,
+        recurring_name,
         days_of_week,
         start_time,
         end_time,
