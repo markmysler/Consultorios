@@ -52,7 +52,7 @@ const { getDoctorWeeklySchedule } = useDoctorSchedule()
 const weekSchedule = ref([])
 const scheduleLoading = ref(false)
 
-const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
 onMounted(async () => {
     try {

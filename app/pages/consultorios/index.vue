@@ -62,8 +62,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
                 <button v-for="office in searchResults" :key="office.id" @click="handleOfficeClick(office.id)"
                     class="w-full flex items-center font-bold text-xs md:text-xl text-primary rounded-md shadow-md shadow-black/10 overflow-hidden">
-                    <span class="w-1/3 bg-secondary py-2 lg:py-4 px-3">{{ office.sector }}</span>
-                    <span class="w-2/3 bg-gray-dark py-2 lg:py-4 px-3">Consultorio {{ office.name }}</span>
+                    <span class="min-w-[8.25rem] md:min-w-52 flex-shrink-0 bg-secondary py-2 lg:py-4 px-3 whitespace-nowrap">{{ office.sector }}</span>
+                    <span class="flex-1 bg-gray-dark py-2 lg:py-4 px-3 whitespace-nowrap overflow-hidden text-ellipsis">Consultorio {{ office.name }}</span>
                 </button>
             </div>
         </div>
@@ -173,9 +173,11 @@ const handleSearch = async () => {
     // Mapear con datos del sector
     searchResults.value = results.map(room => {
         const floor = floors.value.find(f => f.id === room.floor_id)
+        const sectorName = floor ? floor.name : 'desconocido'
+        const displaySector = sectorName.length <= 3 ? `Sector ${sectorName}` : sectorName
         return {
             ...room,
-            sector: floor ? `Sector ${floor.name}` : 'Sector desconocido'
+            sector: displaySector
         }
     })
 }
