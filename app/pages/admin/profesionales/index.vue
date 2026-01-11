@@ -1,10 +1,16 @@
 <template>
     <DefaultSection>
         <HeadingH2>Profesionales</HeadingH2>
-        <ButtonPrimary @click="handleCreate" class="flex justify-center items-center">
-            <Icon name="tabler:plus" class="w-5 h-5 mr-2" />
-            Nuevo Profesional
-        </ButtonPrimary>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <ButtonPrimary @click="handleCreate" class="flex justify-center items-center">
+                <Icon name="tabler:plus" class="w-5 h-5 mr-2" />
+                Nuevo Profesional
+            </ButtonPrimary>
+            <ButtonSecondary @click="handleCreateAccount" class="flex justify-center items-center">
+                <Icon name="tabler:user-plus" class="w-5 h-5 mr-2" />
+                Crear Cuenta de Profesional
+            </ButtonSecondary>
+        </div>
         <div v-if="loading" class="flex justify-center items-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
@@ -54,6 +60,10 @@ onMounted(async () => {
 
 const handleCreate = () => {
     navigateTo(ROUTE_NAMES.ADMIN.CREATE_PROFESSIONAL)
+}
+
+const handleCreateAccount = () => {
+    navigateTo(ROUTE_NAMES.ADMIN.CREATE_PROFESSIONAL_ACCOUNT)
 }
 
 const handleEdit = (doctor) => {
