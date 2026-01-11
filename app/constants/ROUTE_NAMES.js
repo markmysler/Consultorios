@@ -8,30 +8,30 @@ export const ROUTE_NAMES = {
     RESET_PASSWORD: "/reset-password",
     // Auth
     HOME: '/',
+    SECTOR_DETAIL: (id) => `/sector/${id}`,
+    PROFESSIONALS_SEARCH: '/profesionales',
+    PROFESSIONAL_DETAIL: (id) => `/profesionales/${id}`,
+    OFFICES_SEARCH: '/consultorios',
+    OFFICE_DETAIL: (id) => `/consultorios/${id}`,
     // Admin
     ADMIN: {
         INDEX: '/admin',
-
         // Profesionales
         PROFESSIONALS: '/admin/profesionales',
         CREATE_PROFESSIONAL: '/admin/profesionales/create',
         EDIT_PROFESSIONAL: (id) => `/admin/profesionales/edit/${id}`,
-
         // Consultorios
         OFFICES: '/admin/consultorios',
         CREATE_OFFICE: '/admin/consultorios/create',
         EDIT_OFFICE: (id) => `/admin/consultorios/edit/${id}`,
-
         // Pisos
         FLOORS: '/admin/pisos',
         CREATE_FLOOR: '/admin/pisos/create',
         EDIT_FLOOR: (id) => `/admin/pisos/edit/${id}`,
-
         // Licencias
         LICENSES: '/admin/licencias',
         CREATE_LICENSE: '/admin/licencias/create',
         EDIT_LICENSE: (id) => `/admin/licencias/edit/${id}`,
-
         // Horarios
         SCHEDULES: '/admin/horarios',
         CREATE_SCHEDULE: '/admin/horarios/create',
