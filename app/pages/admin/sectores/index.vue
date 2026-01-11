@@ -24,6 +24,10 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useFloors } from '~/composables/useFloors.js'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { floors, loading, fetchFloors, deleteFloor } = useFloors()
 const { success: showSuccess, error: showError } = useNotification()
 

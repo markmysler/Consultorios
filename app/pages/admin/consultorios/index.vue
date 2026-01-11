@@ -24,6 +24,10 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRooms } from '~/composables/useRooms.js'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { rooms, loading, fetchRooms, deleteRoom } = useRooms()
 const { success: showSuccess, error: showError } = useNotification()
 

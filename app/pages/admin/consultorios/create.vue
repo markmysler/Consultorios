@@ -11,6 +11,10 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRooms } from '~/composables/useRooms.js'
 import RoomForm from '~/components/admin/room/Form.vue'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { createRoom } = useRooms()
 const { success: showSuccess, error: showError } = useNotification()
 

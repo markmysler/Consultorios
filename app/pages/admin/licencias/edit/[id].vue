@@ -16,6 +16,10 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useLeaveRequests } from '~/composables/useLeaveRequests.js'
 import LeaveRequestForm from '~/components/admin/leave-request/Form.vue'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const route = useRoute()
 const { currentLeaveRequest, loading, fetchLeaveRequestById, updateLeaveRequest } = useLeaveRequests()
 const { success: showSuccess, error: showError } = useNotification()
