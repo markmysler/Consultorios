@@ -4,14 +4,21 @@ export const useAuth = () => {
   const role = useState('role', () => null)
 
   const fetchRole = async () => {
-    if (!user.value) return
+    const userId = user.value?.sub
+    
+    if (!userId) {
+      return null
+    }
 
-    if (role.value) return role.value
+    if (role.value) {
+      return role.value
+    }
 
-    const { data } = await supabase
+    
+    const { data, error } = await supabase
       .from('user_profiles')
       .select('role')
-      .eq('id', user.value.id)
+      .eq('id', userId)
       .single()
 
     role.value = data?.role ?? null
