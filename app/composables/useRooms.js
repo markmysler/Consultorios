@@ -6,19 +6,45 @@ export function useRooms() {
   const loading = ref(false)
   const error = ref(null)
 
-  async function fetchRooms() {
+  async function fetchRooms(checkDateTime = null) {
     loading.value = true
-    const { data, error: err } = await supabase
-      .from('rooms')
-      .select(`
-        id,
-        name,
-        floor_id,
-        floors ( id, name )
-      `)
+    
+    try {
+      // Use database function for optimal performance
+      const targetDateTime = checkDateTime || new Date().toISOString()
+      
+      const { data, error: err } = await supabase
+        .rpc('get_rooms_availability', {
+          check_datetime: targetDateTime
+        })
 
-    rooms.value = data ?? []
-    error.value = err
+      console.log('Rooms availability response:', data)
+      console.log('Rooms availability error:', err)
+
+      if (err) {
+        error.value = err
+        console.error('Error fetching rooms availability:', err)
+        rooms.value = []
+      } else {
+        // Transform the response to match expected structure
+        rooms.value = (data || []).map(row => ({
+          id: row.room_id,
+          name: row.room_name,
+          floor_id: row.floor_id,
+          floors: {
+            id: row.floor_id,
+            name: row.floor_name
+          },
+          is_available: row.is_available
+        }))
+        error.value = null
+      }
+    } catch (err) {
+      console.error('Error in fetchRooms:', err)
+      error.value = err
+      rooms.value = []
+    }
+
     loading.value = false
   }
 
