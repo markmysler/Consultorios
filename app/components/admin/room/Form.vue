@@ -1,49 +1,43 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-6">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Consultorio
-            </label>
-            <input
-                id="name"
+    <FormLayout @submit.prevent="handleSubmit">
+        <FormFieldsContainer>
+            <FormTextField
                 v-model="formData.name"
-                type="text"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                label="Nombre del Consultorio"
+                id="name"
                 placeholder="Ingrese el nombre del consultorio"
-            />
-        </div>
-
-        <div>
-            <label for="floor_id" class="block text-sm font-medium text-gray-700 mb-2">
-                Piso
-            </label>
-            <select
-                id="floor_id"
-                v-model="formData.floor_id"
                 required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-                <option value="" disabled>Seleccione un piso</option>
-                <option v-for="floor in floors" :key="floor.id" :value="floor.id">
-                    {{ floor.name }}
-                </option>
-            </select>
-        </div>
+                :error="errors.name"
+            />
 
-        <div class="flex gap-4 justify-end pt-4">
-            <ButtonSecondary type="button" @click="$emit('cancel')">
+            <FormSelect
+                v-model="formData.floor_id"
+                label="Sector"
+                placeholder="Seleccione un sector"
+                :options="floorOptions"
+                :error="errors.floor_id"
+                :loading="floorsLoading"
+                required
+            />
+        </FormFieldsContainer>
+
+        <div class="w-full flex flex-col lg:flex-row items-center gap-5 lg:gap-8 mt-3">
+            <ButtonSecondary @click="$emit('cancel')" type="button">
                 Cancelar
             </ButtonSecondary>
-            <ButtonPrimary type="submit">
-                {{ isEditing ? 'Actualizar' : 'Crear' }} Consultorio
+
+            <ButtonPrimary type="submit" :disabled="submitting">
+                <Icon v-if="submitting" name="tabler:loader-2" class="w-4 h-4 animate-spin mr-2" />
+                {{ submitting ? (isEditing ? 'Actualizando...' : 'Creando...') : (isEditing ? 'Actualizar Consultorio' : 'Crear Consultorio') }}
             </ButtonPrimary>
         </div>
-    </form>
+    </FormLayout>
 </template>
 
 <script setup>
 import { useFloors } from '~/composables/useFloors.js'
+
+const { error: showValidationError } = useNotification()
 
 const props = defineProps({
     isEditing: {
@@ -58,25 +52,82 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 
-const { floors, fetchFloors } = useFloors()
+const submitting = ref(false)
+
+const { floors, loading: floorsLoading, fetchFloors } = useFloors()
 
 const formData = reactive({
-    name: props.initialData?.name || '',
-    floor_id: props.initialData?.floor_id || ''
+    name: '',
+    floor_id: null
 })
 
-watch(() => props.initialData, (newData) => {
-    if (newData) {
-        formData.name = newData.name || ''
-        formData.floor_id = newData.floor_id || ''
-    }
-}, { deep: true })
+const errors = reactive({
+    name: '',
+    floor_id: ''
+})
+
+const floorOptions = computed(() => {
+    return floors.value.map(floor => ({
+        value: floor.id,
+        label: floor.name
+    }))
+})
 
 onMounted(async () => {
     await fetchFloors()
+
+    if (props.isEditing && props.initialData) {
+        Object.assign(formData, {
+            name: props.initialData.name || '',
+            floor_id: props.initialData.floor_id || null
+        })
+    }
 })
 
-const handleSubmit = () => {
-    emit('submit', { ...formData })
+const validateForm = () => {
+    Object.keys(errors).forEach(key => {
+        errors[key] = ''
+    })
+
+    let isValid = true
+
+    if (!formData.name.trim()) {
+        errors.name = 'El nombre del consultorio es requerido'
+        isValid = false
+    } else if (formData.name.trim().length < 1) {
+        errors.name = 'El nombre debe tener al menos 1 carácter'
+        isValid = false
+    }
+
+    if (!formData.floor_id) {
+        errors.floor_id = 'Debe seleccionar un sector'
+        isValid = false
+    }
+
+    return isValid
+}
+
+const handleSubmit = async () => {
+    if (!validateForm()) {
+        showValidationError('Por favor, completa todos los campos requeridos', {
+            title: 'Validación incompleta'
+        })
+        return
+    }
+
+    submitting.value = true
+
+    try {
+        const roomData = {
+            name: formData.name.trim(),
+            floor_id: formData.floor_id
+        }
+
+        emit('submit', roomData)
+    } catch (error) {
+        console.error('Error in form submission:', error)
+    } finally {
+        submitting.value = false
+    }
 }
 </script>

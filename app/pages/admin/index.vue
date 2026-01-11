@@ -20,9 +20,9 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 
 const adminSections = [
     {
-        title: 'Profesionales',
-        icon: 'tabler:users',
-        route: ROUTE_NAMES.ADMIN.PROFESSIONALS
+        title: 'Sectores',
+        icon: 'tabler:building',
+        route: ROUTE_NAMES.ADMIN.FLOORS
     },
     {
         title: 'Consultorios',
@@ -30,19 +30,19 @@ const adminSections = [
         route: ROUTE_NAMES.ADMIN.OFFICES
     },
     {
-        title: 'Pisos',
-        icon: 'tabler:building',
-        route: ROUTE_NAMES.ADMIN.FLOORS
-    },
-    {
-        title: 'Licencias',
-        icon: 'tabler:certificate',
-        route: ROUTE_NAMES.ADMIN.LICENSES
+        title: 'Profesionales',
+        icon: 'tabler:users',
+        route: ROUTE_NAMES.ADMIN.PROFESSIONALS
     },
     {
         title: 'Horarios',
         icon: 'tabler:clock',
         route: ROUTE_NAMES.ADMIN.SCHEDULES
+    },
+    {
+        title: 'Licencias',
+        icon: 'tabler:certificate',
+        route: ROUTE_NAMES.ADMIN.LICENSES
     }
 ]
 </script>

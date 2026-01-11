@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Crear Horario</HeadingH1>
+        <HeadingH2>Crear Horario</HeadingH2>
 
         <RecurringAvailabilityForm @submit="handleSubmit" @cancel="handleCancel" />
     </DefaultSection>

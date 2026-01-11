@@ -15,7 +15,7 @@
 
             <tbody>
                 <tr v-for="(item, index) in data" :key="getRowKey(item, index)"
-                    class="odd:bg-gray-light even:bg-gray-mid border-b border-gray-dark last:border-none">
+                    class="bg-gray-light border-b border-gray-dark last:border-none">
                     <td v-for="column in columns" :key="column.key"
                         class="border-r border-gray-dark text-dark font-light p-3 text-center"
                         style="max-height: 8rem; height: auto; vertical-align: middle;">
@@ -52,7 +52,7 @@
         </div>
 
         <ModalDelete :is-open="deleteModal.isOpen" :item-name="deleteModal.itemName" :table-name="deleteModal.tableName"
-            @cancel="closeDeleteModal" @confirm="confirmDelete" />
+            :warning-message="deleteModal.warningMessage" @cancel="closeDeleteModal" @confirm="confirmDelete" />
     </div>
 </template>
 
@@ -90,6 +90,10 @@ const props = defineProps({
     tableName: {
         type: String,
         default: 'tabla'
+    },
+    deleteWarningGetter: {
+        type: Function,
+        default: null
     }
 })
 
@@ -100,7 +104,8 @@ const deleteModal = ref({
     item: null,
     index: null,
     itemName: '',
-    tableName: ''
+    tableName: '',
+    warningMessage: ''
 })
 
 const getNestedValue = (obj, path) => {
@@ -114,7 +119,8 @@ const getRowKey = (item, index) => {
 const openDeleteModal = (item, index) => {
     let itemName = 'este elemento'
 
-    if (item.nombreComercio) itemName = item.nombreComercio
+    if (item.fullname) itemName = item.fullname
+    else if (item.nombreComercio) itemName = item.nombreComercio
     else if (item.nombre) itemName = item.nombre
     else if (item.titulo) itemName = item.titulo
     else if (item.descripcion) itemName = item.descripcion
@@ -124,12 +130,15 @@ const openDeleteModal = (item, index) => {
     else if (item.url) itemName = item.url
     else if (item.id) itemName = `ID: ${item.id}`
 
+    const warningMessage = props.deleteWarningGetter ? props.deleteWarningGetter(item) : ''
+
     deleteModal.value = {
         isOpen: true,
         item: item,
         index: index,
         itemName: itemName,
-        tableName: props.tableName
+        tableName: props.tableName,
+        warningMessage: warningMessage
     }
 }
 
@@ -139,7 +148,8 @@ const closeDeleteModal = () => {
         item: null,
         index: null,
         itemName: '',
-        tableName: ''
+        tableName: '',
+        warningMessage: ''
     }
 }
 

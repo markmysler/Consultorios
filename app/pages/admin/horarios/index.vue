@@ -1,7 +1,7 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Horarios</HeadingH1>
-        <ButtonPrimary @click="handleCreate">
+        <HeadingH2>Horarios</HeadingH2>
+        <ButtonPrimary @click="handleCreate" class="flex justify-center items-center"> 
             <Icon name="tabler:plus" class="w-5 h-5 mr-2" />
             Nuevo Horario
         </ButtonPrimary>
@@ -9,14 +9,18 @@
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
 
-        <div v-else-if="recurringAvailabilities.length === 0" class="text-center py-12">
+        <div v-else-if="recurringAvailabilities.length === 0" class="text-center py-6">
             <Icon name="tabler:clock" class="w-16 h-16" />
             <p class="text-dark text-lg">No hay horarios disponibles</p>
         </div>
 
-        <TableLayout v-else :data="recurringAvailabilities" :columns="tabla.columns"
+        <TableLayout v-else :data="enrichedAvailabilities" :columns="tabla.columns"
             :empty-state-text="`No hay horarios creados`" table-name="horarios" :show-actions="true"
-            :show-delete="true" @edit="handleEdit" @delete="handleDelete" />
+            :show-delete="true" @edit="handleEdit" @delete="handleDelete">
+            <template #cell-days_of_week="{ value }">
+                {{ formatDays(value) }}
+            </template>
+        </TableLayout>
     </DefaultSection>
 </template>
 
@@ -30,29 +34,58 @@ const { success: showSuccess, error: showError } = useNotification()
 const tabla = {
     columns: [
         {
-            key: 'doctor.nombre',
+            key: 'doctors.fullname',
             label: 'Profesional',
         },
         {
-            key: 'room.nombre',
+            key: 'rooms.name',
             label: 'Consultorio',
         },
         {
-            key: 'dia_semana',
-            label: 'Día',
+            key: 'days_of_week',
+            label: 'Días',
         },
         {
-            key: 'hora_inicio',
+            key: 'start_time',
             label: 'Hora Inicio',
-            type: 'time'
         },
         {
-            key: 'hora_fin',
+            key: 'end_time',
             label: 'Hora Fin',
-            type: 'time'
         }
     ]
 }
+
+const daysMap = {
+    1: 'Lun',
+    2: 'Mar',
+    3: 'Mié',
+    4: 'Jue',
+    5: 'Vie',
+    6: 'Sáb',
+    7: 'Dom'
+}
+
+const formatDays = (daysArray) => {
+    if (!Array.isArray(daysArray) || daysArray.length === 0) return '-'
+    return daysArray
+        .sort((a, b) => a - b)
+        .map(day => daysMap[day] || day)
+        .join(', ')
+}
+
+// Enriquecer los datos con un campo 'name' para el modal de eliminación
+const enrichedAvailabilities = computed(() => {
+    return recurringAvailabilities.value.map(availability => {
+        const doctorName = availability.doctors?.fullname || 'Profesional'
+        const roomName = availability.rooms?.name || 'Consultorio'
+        const days = formatDays(availability.days_of_week)
+        return {
+            ...availability,
+            name: `${doctorName} - ${roomName} (${days})`
+        }
+    })
+})
 
 onMounted(async () => {
     try {
@@ -74,6 +107,7 @@ const handleDelete = async (availability) => {
     try {
         await deleteRecurringAvailability(availability.id)
         showSuccess('Horario eliminado correctamente')
+        await fetchRecurringAvailabilities()
     } catch (err) {
         showError('Error al eliminar el horario')
         console.error('Error deleting recurring availability:', err)

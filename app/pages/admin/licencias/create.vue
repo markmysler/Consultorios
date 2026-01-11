@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Crear Licencia</HeadingH1>
+        <HeadingH2>Crear Licencia</HeadingH2>
 
         <LeaveRequestForm @submit="handleSubmit" @cancel="handleCancel" />
     </DefaultSection>
