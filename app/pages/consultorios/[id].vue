@@ -5,27 +5,14 @@
         </div>
 
         <div v-else-if="currentRoom" class="w-full max-w-2xl space-y-6">
-            <div class="text-center">
-                <HeadingH1>Consultorio {{ currentRoom.name }}</HeadingH1>
-                <p v-if="currentFloor" class="text-primary font-medium text-lg">
+            <div class="flex flex-col gap-1 text-center">
+                <HeadingH2>Consultorio {{ currentRoom.name }}</HeadingH2>
+                <p v-if="currentFloor" class="lg:text-xl text-primary font-bold">
                     Sector {{ currentFloor.name }}
                 </p>
             </div>
 
-            <div>
-                <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
-                    Seleccione una fecha
-                </label>
-                <div class="relative">
-                    <Icon name="tabler:calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-                    <input
-                        id="date"
-                        v-model="selectedDate"
-                        type="date"
-                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-dark"
-                    />
-                </div>
-            </div>
+            <FormDateField v-model="selectedDate" label="Seleccione una fecha" id="date" />
 
             <div class="space-y-3">
                 <div v-if="daySchedule.length === 0" class="text-center py-8 text-gray-dark italic">
@@ -71,15 +58,36 @@
 </template>
 
 <script setup>
-import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRooms } from '~/composables/useRooms.js'
 import { useFloors } from '~/composables/useFloors.js'
+import { useRoomSchedule } from '~/composables/useRoomSchedule.js'
 
 const route = useRoute()
 const { currentRoom, loading, fetchRoomById } = useRooms()
 const { currentFloor, fetchFloorById } = useFloors()
+const { getWeeklySchedule } = useRoomSchedule()
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
+const weeklySchedule = ref({})
+const daySchedule = ref([])
+const scheduleLoading = ref(false)
+
+const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
+const updateDaySchedule = (date) => {
+    const dayOfWeek = new Date(date).getDay()
+    const dayName = dayNames[dayOfWeek]
+    const schedule = weeklySchedule.value[dayName] || []
+
+    daySchedule.value = schedule.map((slot, index) => ({
+        id: index,
+        available: false, // Todos los slots tienen un doctor asignado
+        doctorName: slot.doctor_name,
+        time: `${slot.start_time} - ${slot.end_time}`,
+        agendaName: slot.doctor_name,
+        doctor_cuil: slot.doctor_cuil
+    }))
+}
 
 onMounted(async () => {
     try {
@@ -91,43 +99,19 @@ onMounted(async () => {
             await fetchFloorById(currentRoom.value.floor_id)
         }
 
-        // TODO: Cargar agenda del consultorio
+        // Cargar agenda del consultorio
+        scheduleLoading.value = true
+        weeklySchedule.value = await getWeeklySchedule(id)
+        updateDaySchedule(selectedDate.value)
+        scheduleLoading.value = false
     } catch (err) {
         console.error('Error loading room:', err)
+        scheduleLoading.value = false
     }
 })
 
-// TODO: Obtener agenda real del composable basado en selectedDate
-const daySchedule = ref([
-    {
-        id: 1,
-        available: true,
-        time: '07:00hs - 09:30hs'
-    },
-    {
-        id: 2,
-        available: false,
-        doctorName: 'Juan Pérez',
-        time: '09:30hs - 13:00hs',
-        agendaName: 'XXX'
-    },
-    {
-        id: 3,
-        available: false,
-        doctorName: 'Alejandra Cruz',
-        time: '13:00hs - 16:00hs',
-        agendaName: 'XXX'
-    },
-    {
-        id: 4,
-        available: true,
-        time: '16:00hs - 20:00hs'
-    }
-])
-
 // Watch selectedDate para actualizar la agenda
 watch(selectedDate, async (newDate) => {
-    // TODO: Cargar agenda para la nueva fecha
-    console.log('Date changed to:', newDate)
+    updateDaySchedule(newDate)
 })
 </script>

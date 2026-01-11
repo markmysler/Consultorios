@@ -56,6 +56,10 @@ const tabla = {
         {
             key: 'end_time',
             label: 'Hora Fin',
+        },
+        {
+            key: 'valid_to',
+            label: 'Válido hasta',
         }
     ]
 }

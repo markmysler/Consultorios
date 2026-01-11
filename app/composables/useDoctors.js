@@ -10,7 +10,12 @@ export function useDoctors() {
     loading.value = true
     const { data, error: err } = await supabase
       .from('doctors')
-      .select('*')
+      .select(`
+        *,
+        doctor_specializations (
+          specializations ( id, name )
+        )
+      `)
       .order('fullname')
 
     doctors.value = data ?? []

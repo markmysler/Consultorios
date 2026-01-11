@@ -1,65 +1,54 @@
-import { WEEKDAYS } from '~/constants/WEEK_DAYS'
-import { subtractLeavesFromAvailability, formatTime } from '~/utils/scheduleHelpers'
-
 export const useDoctorSchedule = () => {
   const supabase = useSupabaseClient()
 
+  const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
   const getDoctorWeeklySchedule = async (doctorId) => {
+    const today = new Date().toISOString().split('T')[0]
+
     // 1. Fetch recurring availability
-    const { data: availability } = await supabase
+    const { data: availability, error: availError } = await supabase
       .from('recurring_availability')
       .select(`
-        weekday,
+        days_of_week,
         start_time,
         end_time,
-        room:rooms ( id, name )
+        valid_to,
+        rooms ( id, name, floors ( id, name ) )
       `)
       .eq('doctor_id', doctorId)
+      .or(`valid_to.is.null,valid_to.gte.${today}`)
 
-    // 2. Fetch leave intervals
-    const { data: leaves } = await supabase
-      .from('leave_requests')
-      .select('start_datetime, end_datetime')
-      .eq('doctor_id', doctorId)
+    if (availError) {
+      console.error('Error fetching availability:', availError)
+      return {}
+    }
+
+    if (!availability || availability.length === 0) {
+      return {}
+    }
 
     const schedule = {}
 
     for (const row of availability) {
-      const dayName = WEEKDAYS[row.weekday]
+      // days_of_week es un array de números [1, 2, 3]
+      const daysArray = row.days_of_week || []
 
-      const baseInterval = {
-        start: row.start_time,
-        end: row.end_time
-      }
+      for (const dayNum of daysArray) {
+        const dayName = dayNames[dayNum]
 
-      // Leaves that affect this weekday
-      const relevantLeaves = leaves
-        .map(l => ({
-          start: l.start_datetime,
-          end: l.end_datetime
-        }))
-        .filter(l => {
-          return new Date(l.start).getDay() === row.weekday ||
-                 new Date(l.end).getDay() === row.weekday
-        })
+        if (!schedule[dayName]) {
+          schedule[dayName] = []
+        }
 
-      const finalIntervals = subtractLeavesFromAvailability(
-        baseInterval,
-        relevantLeaves
-      )
-
-      if (!finalIntervals.length) continue
-
-      if (!schedule[dayName]) {
-        schedule[dayName] = []
-      }
-
-      for (const interval of finalIntervals) {
+        // Por ahora sin filtrar por licencias - simplificado
         schedule[dayName].push({
-          start_time: formatTime(interval.start),
-          end_time: formatTime(interval.end),
-          room_id: row.room.id,
-          room_name: row.room.name
+          start_time: row.start_time,
+          end_time: row.end_time,
+          room_id: row.rooms?.id,
+          room_name: row.rooms?.name,
+          floor_id: row.rooms?.floors?.id,
+          floor_name: row.rooms?.floors?.name
         })
       }
     }

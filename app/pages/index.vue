@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Seleccione un Sector</HeadingH1>
+        <HeadingH2>Seleccione un Sector</HeadingH2>
 
         <div v-if="loading" class="flex justify-center items-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -12,13 +12,8 @@
         </div>
 
         <div v-else class="w-full max-w-2xl grid grid-cols-2 gap-4 lg:gap-6">
-            <button
-                v-for="floor in floors"
-                :key="floor.id"
-                @click="handleSectorClick(floor.id)"
-                class="bg-gray-light hover:bg-primary hover:text-light text-primary font-bold text-2xl lg:text-4xl
-                       rounded-xl shadow-lg transition duration-300 py-8 lg:py-12 border-2 border-primary"
-            >
+            <button v-for="floor in floors" :key="floor.id" @click="handleSectorClick(floor.id)"
+                class="bg-primary text-light font-bold text-4xl rounded-xl shadow-lg py-8 lg:py-12">
                 {{ floor.name }}
             </button>
         </div>

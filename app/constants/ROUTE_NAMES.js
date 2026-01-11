@@ -19,7 +19,6 @@ export const ROUTE_NAMES = {
         // Profesionales
         PROFESSIONALS: '/admin/profesionales',
         CREATE_PROFESSIONAL: '/admin/profesionales/create',
-        CREATE_PROFESSIONAL_ACCOUNT: '/admin/profesionales/create-account',
         EDIT_PROFESSIONAL: (id) => `/admin/profesionales/edit/${id}`,
         // Consultorios
         OFFICES: '/admin/consultorios',
