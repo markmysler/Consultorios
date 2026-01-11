@@ -50,12 +50,22 @@
             :error="errors.days_of_week"
         />
 
-        <FormDateField
-            v-model="formData.valid_to"
-            label="Válido Hasta (Opcional)"
-            id="valid_to"
-            :error="errors.valid_to"
-        />
+        <FormFieldsContainer>
+            <FormTextField
+                v-model="formData.recurring_name"
+                label="Nombre de Agenda (Opcional)"
+                placeholder="Ej: Consultorio Mañana"
+                id="recurring_name"
+                :error="errors.recurring_name"
+            />
+
+            <FormDateField
+                v-model="formData.valid_to"
+                label="Válido Hasta (Opcional)"
+                id="valid_to"
+                :error="errors.valid_to"
+            />
+        </FormFieldsContainer>
 
         <div class="w-full flex flex-col lg:flex-row items-center gap-5 lg:gap-8 mt-3">
             <ButtonSecondary type="button" @click="$emit('cancel')">
@@ -94,8 +104,7 @@ const daysOfWeekOptions = [
     { value: '3', label: 'Miércoles' },
     { value: '4', label: 'Jueves' },
     { value: '5', label: 'Viernes' },
-    { value: '6', label: 'Sábado' },
-    { value: '7', label: 'Domingo' }
+    { value: '6', label: 'Sábado' }
 ]
 
 const doctorOptions = computed(() => {
@@ -120,6 +129,7 @@ const formData = reactive({
     room_id: props.initialData?.room_id || null,
     start_time: props.initialData?.start_time || '',
     end_time: props.initialData?.end_time || '',
+    recurring_name: props.initialData?.recurring_name || '',
     valid_to: props.initialData?.valid_to ? new Date(props.initialData.valid_to).toISOString().split('T')[0] : null
 })
 
@@ -146,6 +156,7 @@ watch(() => props.initialData, (newData) => {
         formData.room_id = newData.room_id || null
         formData.start_time = newData.start_time || ''
         formData.end_time = newData.end_time || ''
+        formData.recurring_name = newData.recurring_name || ''
         formData.valid_to = newData.valid_to ? new Date(newData.valid_to).toISOString().split('T')[0] : null
         initializeSelectedDays()
     }
@@ -167,6 +178,7 @@ const handleSubmit = () => {
         room_id: formData.room_id,
         start_time: formData.start_time,
         end_time: formData.end_time,
+        recurring_name: formData.recurring_name || null,
         days_of_week: daysArray,
         timezone: 'America/Argentina/Buenos_Aires',
         valid_from: today,

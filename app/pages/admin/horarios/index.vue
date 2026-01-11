@@ -38,6 +38,10 @@ const { success: showSuccess, error: showError } = useNotification()
 const tabla = {
     columns: [
         {
+            key: 'recurring_name',
+            label: 'Nombre de Agenda',
+        },
+        {
             key: 'doctors.fullname',
             label: 'Profesional',
         },
