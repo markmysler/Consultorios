@@ -46,7 +46,7 @@
             </div>
 
             <div class="flex flex-col gap-3">
-                <p v-if="user" class="text-sm text-primary px-3">
+                <p v-if="user" class="text-sm text-primary px-1">
                     Sesión iniciada como <span class="font-medium">{{ user.email }}</span>
                 </p>
                 

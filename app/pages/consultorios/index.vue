@@ -1,155 +1,76 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Buscar por: Consultorio</HeadingH1>
+        <HeadingH2>Buscar por: Consultorio</HeadingH2>
 
-        <div class="w-full max-w-2xl space-y-6">
-            <div>
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre de agenda
-                </label>
-                <div class="relative">
-                    <Icon name="tabler:search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
-                    <input
-                        id="search"
-                        v-model="searchQuery"
-                        type="text"
-                        placeholder="Buscar consultorio..."
-                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-dark"
-                    />
-                </div>
-            </div>
+        <FormLayout @submit.prevent="handleSearch">
+            <FormTextField v-model="searchQuery" label="Nombre de agenda" placeholder="Buscar consultorio..."
+                id="search" />
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="sector" class="block text-sm font-medium text-gray-700 mb-2">
-                        Sector
-                    </label>
-                    <select
-                        id="sector"
-                        v-model="selectedSector"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-dark"
-                    >
-                        <option value="">Todos</option>
-                        <option v-for="floor in floors" :key="floor.id" :value="floor.id">
-                            {{ floor.name }}
-                        </option>
-                    </select>
+            <FormFieldsContainer>
+                <FormSelect v-model="selectedSector" label="Sector" placeholder="Todos" id="sector"
+                    :options="floorOptions" clearable />
+
+                <FormSelect v-model="selectedNumber" label="Número" placeholder="Todos" id="number"
+                    :options="roomOptions" clearable />
+            </FormFieldsContainer>
+
+            <FormFieldsContainer>
+                <div class="flex flex-col gap-2">
+                    <FormSelect v-model="selectedSpecialty" label="Especialidad"
+                        placeholder="Seleccione una especialidad" id="specialty" :options="specialtyOptions"
+                        :disabled="isAvailableFree" clearable />
+                    <p v-if="isAvailableFree" class="text-sm text-dark/70">
+                        Si eliges buscar por un consultorio libre, no puedes elegir buscar por una especialidad.
+                    </p>
                 </div>
 
-                <div>
-                    <label for="number" class="block text-sm font-medium text-gray-700 mb-2">
-                        Número
-                    </label>
-                    <select
-                        id="number"
-                        v-model="selectedNumber"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-dark"
-                    >
-                        <option value="">Todos</option>
-                        <option v-for="room in availableRooms" :key="room.id" :value="room.id">
-                            {{ room.name }}
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <label for="specialty" class="block text-sm font-medium text-gray-700 mb-2">
-                    Especialidad
-                </label>
-                <select
-                    id="specialty"
-                    v-model="selectedSpecialty"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-dark"
-                >
-                    <option value="">Seleccione una especialidad</option>
-                    <option value="pediatria">Pediatría</option>
-                    <option value="cardiologia">Cardiología</option>
-                    <option value="oftalmologia">Oftalmología</option>
-                    <option value="traumatologia">Traumatología</option>
-                </select>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Disponibilidad
-                </label>
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            v-model="filterOccupied"
-                            class="w-5 h-5 text-primary focus:ring-primary border-gray-300 rounded"
-                        />
-                        <span class="text-dark">Ocupado</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            v-model="filterAvailable"
-                            class="w-5 h-5 text-primary focus:ring-primary border-gray-300 rounded"
-                        />
-                        <span class="text-dark">Libre</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="date" class="block text-sm font-medium text-gray-700 mb-2">
-                        Fecha
-                    </label>
-                    <div class="relative">
-                        <Icon name="tabler:calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                        <input
-                            id="date"
-                            type="date"
-                            v-model="filterDate"
-                            class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary text-dark"
-                        />
+                <div class="flex flex-col gap-2">
+                    <FormLabel>Disponibilidad</FormLabel>
+                    <div class="flex gap-4">
+                        <FormLabel class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" v-model="selectedAvailability" value="occupied"
+                                :disabled="!!selectedSpecialty"
+                                class="w-4 h-4 text-primary focus:ring-primary border-gray-300" />
+                            <span class="text-dark">Ocupado</span>
+                        </FormLabel>
+                        <FormLabel class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" v-model="selectedAvailability" value="available"
+                                :disabled="!!selectedSpecialty"
+                                class="w-4 h-4 text-primary focus:ring-primary border-gray-300" />
+                            <span class="text-dark">Libre</span>
+                        </FormLabel>
                     </div>
+                    <p v-if="selectedSpecialty" class="text-sm text-dark/70">
+                        Si eliges buscar por una especialidad, no puedes elegir buscar por un consultorio libre.
+                    </p>
                 </div>
-                <div>
-                    <label for="time" class="block text-sm font-medium text-gray-700 mb-2">
-                        Hora
-                    </label>
-                    <div class="relative">
-                        <Icon name="tabler:clock" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
-                        <input
-                            id="time"
-                            type="time"
-                            v-model="filterTime"
-                            class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary text-dark"
-                        />
-                    </div>
-                </div>
-            </div>
+            </FormFieldsContainer>
+            <FormFieldsContainer>
+                <FormDateField v-model="filterDate" label="Fecha" id="date" />
 
-            <ButtonPrimary @click="handleSearch" class="w-full">
+                <FormTimeField v-model="filterTime" label="Hora" id="time" />
+            </FormFieldsContainer>
+
+            <ButtonPrimary type="submit">
                 Buscar
             </ButtonPrimary>
+        </FormLayout>
 
-            <div v-if="searchResults.length > 0" class="space-y-3 mt-8">
-                <HeadingH2>Resultados</HeadingH2>
+        <div v-if="searchResults.length > 0" class="w-full max-w-md lg:max-w-[56.25rem] flex flex-col gap-6 mt-8">
+            <HeadingH2 class="text-center">Resultados</HeadingH2>
 
-                <button
-                    v-for="office in searchResults"
-                    :key="office.id"
-                    @click="handleOfficeClick(office.id)"
-                    class="w-full bg-secondary hover:bg-primary hover:text-light text-primary rounded-lg p-4 transition duration-300 flex items-center justify-between"
-                >
-                    <div class="text-left">
-                        <p class="font-bold">{{ office.sector }}</p>
-                        <p class="font-medium">{{ office.name }}</p>
-                    </div>
-                    <Icon name="tabler:chevron-right" class="w-6 h-6" />
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+                <button v-for="office in searchResults" :key="office.id" @click="handleOfficeClick(office.id)"
+                    class="w-full flex items-center font-bold text-xs md:text-xl text-primary rounded-md shadow-md shadow-black/10 overflow-hidden">
+                    <span class="w-1/3 bg-secondary py-2 lg:py-4 px-3">{{ office.sector }}</span>
+                    <span class="w-2/3 bg-gray-dark py-2 lg:py-4 px-3">Consultorio {{ office.name }}</span>
                 </button>
             </div>
+        </div>
 
-            <div v-else-if="hasSearched && searchResults.length === 0" class="text-center py-8">
-                <Icon name="tabler:door-off" class="w-16 h-16 mx-auto text-gray-dark" />
-                <p class="text-dark text-lg mt-4">No se encontraron consultorios</p>
-            </div>
+        <div v-else-if="hasSearched && searchResults.length === 0" class="w-full max-w-2xl text-center py-8">
+            <Icon name="tabler:door-off" class="w-16 h-16 mx-auto text-gray-dark" />
+            <p class="text-dark text-lg mt-4">No se encontraron consultorios</p>
         </div>
     </DefaultSection>
 </template>
@@ -158,30 +79,69 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRooms } from '~/composables/useRooms.js'
 import { useFloors } from '~/composables/useFloors.js'
+import { useSpecializations } from '~/composables/useSpecializations.js'
 
 const { rooms, fetchRooms } = useRooms()
 const { floors, fetchFloors } = useFloors()
+const { specializations, fetchSpecializations } = useSpecializations()
 
 const searchQuery = ref('')
 const selectedSector = ref('')
 const selectedNumber = ref('')
 const selectedSpecialty = ref('')
-const filterOccupied = ref(false)
-const filterAvailable = ref(false)
+const selectedAvailability = ref('')
 const filterDate = ref('')
 const filterTime = ref('')
 
 const searchResults = ref([])
 const hasSearched = ref(false)
 
-const availableRooms = computed(() => {
-    if (!selectedSector.value) return rooms.value
-    return rooms.value.filter(room => room.floor_id === selectedSector.value)
+const isAvailableFree = computed(() => {
+    return selectedAvailability.value === 'available'
+})
+
+// Watcher para auto-seleccionar "Ocupado" cuando se elige especialidad
+watch(selectedSpecialty, (newValue) => {
+    if (newValue) {
+        selectedAvailability.value = 'occupied'
+    }
+})
+
+// Watcher para limpiar especialidad cuando se marca "Libre"
+watch(selectedAvailability, (newValue) => {
+    if (newValue === 'available') {
+        selectedSpecialty.value = ''
+    }
+})
+
+const floorOptions = computed(() => {
+    return floors.value.map(floor => ({
+        value: floor.id,
+        label: `Sector ${floor.name}`
+    }))
+})
+
+const roomOptions = computed(() => {
+    const availableRooms = selectedSector.value
+        ? rooms.value.filter(room => room.floor_id === selectedSector.value)
+        : rooms.value
+
+    return availableRooms.map(room => ({
+        value: room.id,
+        label: room.name
+    }))
+})
+
+const specialtyOptions = computed(() => {
+    return specializations.value.map(spec => ({
+        value: spec.id,
+        label: spec.name
+    }))
 })
 
 onMounted(async () => {
     try {
-        await Promise.all([fetchRooms(), fetchFloors()])
+        await Promise.all([fetchRooms(), fetchFloors(), fetchSpecializations()])
     } catch (err) {
         console.error('Error loading data:', err)
     }

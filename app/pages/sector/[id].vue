@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Consultorio {{ selectedRoom?.name || '' }}</HeadingH1>
+        <HeadingH2>Consultorio {{ selectedRoom?.name || '' }}</HeadingH2>
         <p v-if="currentFloor" class="text-primary font-medium text-lg">Sector {{ currentFloor.name }}</p>
 
         <div class="w-full max-w-2xl space-y-6">

@@ -1,28 +1,26 @@
-import { WEEKDAYS } from '~/constants/WEEK_DAYS'
-import { subtractLeavesFromAvailability, formatTime } from '~/utils/scheduleHelpers'
-
 export const useRoomSchedule = () => {
   const supabase = useSupabaseClient()
 
-  /* -----------------------------------------
-   * Main API
-   * --------------------------------------- */
+  const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+
   const getWeeklySchedule = async (roomId) => {
-    /**
-     * 1️⃣ Fetch recurring availability for this room
-     */
+    const today = new Date().toISOString().split('T')[0]
+
+    // 1. Fetch recurring availability for this room
     const { data: availability, error: availabilityError } = await supabase
       .from('recurring_availability')
       .select(`
-        weekday,
+        days_of_week,
         start_time,
         end_time,
-        doctor:doctors (
-          cuil,
+        valid_to,
+        doctors (
+          id,
           fullname
         )
       `)
       .eq('room_id', roomId)
+      .or(`valid_to.is.null,valid_to.gte.${today}`)
 
     if (availabilityError) {
       console.error('[useRoomSchedule] availability error', availabilityError)
@@ -31,67 +29,27 @@ export const useRoomSchedule = () => {
 
     if (!availability?.length) return {}
 
-    /**
-     * 2️⃣ Fetch leaves for involved doctors
-     */
-    const doctorCuils = [
-      ...new Set(availability.map(a => a.doctor.cuil))
-    ]
-
-    const { data: leaves, error: leaveError } = await supabase
-      .from('leave_requests')
-      .select('doctor_id, start_datetime, end_datetime')
-      .in('doctor_id', doctorCuils)
-
-    if (leaveError) {
-      console.error('[useRoomSchedule] leave error', leaveError)
-      return {}
-    }
-
-    /**
-     * 3️⃣ Build weekly schedule
-     */
+    // 2. Build weekly schedule
     const schedule = {}
 
     for (const row of availability) {
-      const dayName = WEEKDAYS[row.weekday]
+      // days_of_week es un array de números [1, 2, 3]
+      const daysArray = row.days_of_week || []
 
-      const baseInterval = {
-        start: row.start_time,
-        end: row.end_time
-      }
+      for (const dayNum of daysArray) {
+        const dayName = dayNames[dayNum]
 
-      // Leaves affecting this doctor on this weekday
-      const relevantLeaves = leaves
-        .filter(l => l.doctor_id === row.doctor.cuil)
-        .map(l => ({
-          start: l.start_datetime,
-          end: l.end_datetime
-        }))
-        .filter(l => {
-          const startDay = new Date(l.start).getDay()
-          const endDay = new Date(l.end).getDay()
-          return startDay === row.weekday || endDay === row.weekday
-        })
+        if (!schedule[dayName]) {
+          schedule[dayName] = []
+        }
 
-      const finalIntervals = subtractLeavesFromAvailability(
-        baseInterval,
-        relevantLeaves
-      )
-
-      if (!finalIntervals.length) continue
-
-      if (!schedule[dayName]) {
-        schedule[dayName] = []
-      }
-
-      for (const interval of finalIntervals) {
+        // Por ahora sin filtrar por licencias - simplificado
         schedule[dayName].push({
-          start_time: formatTime(interval.start),
-          end_time: formatTime(interval.end),
-          doctor_id: row.doctor.cuil,
-          doctor_cuil: row.doctor.cuil,
-          doctor_name: row.doctor.fullname
+          start_time: row.start_time,
+          end_time: row.end_time,
+          doctor_id: row.doctors?.id,
+          doctor_cuil: row.doctors?.id,
+          doctor_name: row.doctors?.fullname
         })
       }
     }

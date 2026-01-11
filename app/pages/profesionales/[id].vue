@@ -4,47 +4,30 @@
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
 
-        <div v-else-if="currentDoctor" class="w-full max-w-4xl space-y-6">
-            <div class="text-center space-y-3">
-                <HeadingH1>{{ currentDoctor.fullname }}</HeadingH1>
-                <div class="flex gap-2 justify-center flex-wrap">
-                    <span class="px-4 py-2 bg-secondary text-primary rounded-full text-sm font-medium">
-                        Pediatría
-                    </span>
-                    <span class="px-4 py-2 bg-secondary text-primary rounded-full text-sm font-medium">
-                        Oftalmología
-                    </span>
-                </div>
-            </div>
+        <div v-else-if="currentDoctor" class="w-full flex flex-col items-center gap-6">
+            <HeadingH2>{{ currentDoctor.fullname }}</HeadingH2>
 
-            <div class="space-y-4">
-                <div v-for="day in weekSchedule" :key="day.name" class="space-y-2">
-                    <h3 class="font-bold text-lg text-dark">{{ day.name }}</h3>
+            <div class="w-full max-w-lg flex flex-col items-center gap-5">
+                <div v-for="day in weekSchedule" :key="day.name" class="w-full flex flex-col gap-2">
+                    <HeadingH3 class="text-primary">{{ day.name }}</HeadingH3>
 
                     <div v-if="day.appointments.length === 0" class="text-gray-dark italic">
                         Sin horarios asignados
                     </div>
 
-                    <div v-else class="space-y-2">
-                        <div
-                            v-for="appointment in day.appointments"
-                            :key="appointment.id"
-                            class="bg-secondary rounded-lg p-4 flex items-center justify-between"
-                        >
-                            <div class="flex-1">
-                                <p class="font-bold text-primary">{{ appointment.sector }}</p>
-                                <p class="text-dark font-medium">{{ appointment.time }}</p>
-                                <p class="text-sm text-dark/70">
+                    <div v-else class="flex flex-col gap-2">
+                        <div v-for="appointment in day.appointments" :key="appointment.id"
+                            class="w-full bg-gray-dark rounded-md shadow-md shadow-black/10 overflow-hidden">
+                            <div class="flex text-xs lg:text-base text-primary font-bold">
+                                <span class="w-1/3 bg-secondary rounded-br-md py-2 px-2.5 lg:px-4">Sector {{ appointment.sector
+                                    }} {{ appointment.room }}</span>
+                                <span class="w-2/3 py-2 px-3 lg:px-5">{{ appointment.time }}</span>
+                            </div>
+                            <div class="py-2 px-3 lg:px-5">
+                                <p class="text-xs lg:text-base text-primary">
                                     Nombre de la agenda: "{{ appointment.agendaName }}"
                                 </p>
                             </div>
-
-                            <button
-                                @click="handleEditAppointment(appointment)"
-                                class="text-terciary hover:text-terciary/80 transition"
-                            >
-                                <Icon name="tabler:edit" class="w-6 h-6" />
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -59,103 +42,48 @@
 </template>
 
 <script setup>
-import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useDoctors } from '~/composables/useDoctors.js'
+import { useDoctorSchedule } from '~/composables/useDoctorSchedule.js'
 
 const route = useRoute()
 const { currentDoctor, loading, fetchDoctorById } = useDoctors()
+const { getDoctorWeeklySchedule } = useDoctorSchedule()
+
+const weekSchedule = ref([])
+const scheduleLoading = ref(false)
+
+const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 
 onMounted(async () => {
     try {
         const id = route.params.id
         await fetchDoctorById(id)
-        // TODO: Cargar agenda del profesional
+
+        // Cargar agenda del profesional
+        if (currentDoctor.value) {
+            scheduleLoading.value = true
+            const schedule = await getDoctorWeeklySchedule(id)
+
+            // Transformar el schedule del composable al formato que espera el template
+            weekSchedule.value = dayNames.map(dayName => {
+                const daySchedule = schedule[dayName] || []
+                return {
+                    name: dayName,
+                    appointments: daySchedule.map((slot, index) => ({
+                        id: `${dayName}-${index}`,
+                        sector: slot.floor_name,
+                        room: slot.room_name,
+                        time: `${slot.start_time} - ${slot.end_time}`,
+                        agendaName: slot.room_name,
+                        room_id: slot.room_id
+                    }))
+                }
+            })
+            scheduleLoading.value = false
+        }
     } catch (err) {
         console.error('Error loading professional:', err)
+        scheduleLoading.value = false
     }
 })
-
-// TODO: Obtener agenda real del composable
-const weekSchedule = ref([
-    {
-        name: 'Lunes',
-        appointments: [
-            {
-                id: 1,
-                sector: 'Sector A 23',
-                time: '07:00hs - 09:30hs',
-                agendaName: 'XXX'
-            },
-            {
-                id: 2,
-                sector: 'Oncología 11',
-                time: '11:00hs - 16:30hs',
-                agendaName: 'XXX'
-            }
-        ]
-    },
-    {
-        name: 'Martes',
-        appointments: [
-            {
-                id: 3,
-                sector: 'Sector B 02',
-                time: '13:00hs - 16:30hs',
-                agendaName: 'XXX'
-            }
-        ]
-    },
-    {
-        name: 'Miércoles',
-        appointments: [
-            {
-                id: 4,
-                sector: 'Sector C 14',
-                time: '11:30hs - 16:30hs',
-                agendaName: 'XXX'
-            }
-        ]
-    },
-    {
-        name: 'Jueves',
-        appointments: [
-            {
-                id: 5,
-                sector: 'Infectología 20',
-                time: '09:00hs - 12:30hs',
-                agendaName: 'XXX'
-            },
-            {
-                id: 6,
-                sector: 'Sector A 07',
-                time: '16:00hs - 19:00hs',
-                agendaName: 'XXX'
-            }
-        ]
-    },
-    {
-        name: 'Viernes',
-        appointments: [
-            {
-                id: 7,
-                sector: 'Sector C 12',
-                time: '10:30hs - 17:30hs',
-                agendaName: 'XXX'
-            }
-        ]
-    },
-    {
-        name: 'Sábado',
-        appointments: []
-    },
-    {
-        name: 'Domingo',
-        appointments: []
-    }
-])
-
-const handleEditAppointment = (appointment) => {
-    // TODO: Implementar edición de cita
-    console.log('Edit appointment:', appointment)
-}
 </script>
