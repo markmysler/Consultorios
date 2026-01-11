@@ -36,8 +36,7 @@
                     <span class="font-medium">Consultorios</span>
                 </NuxtLink>
 
-                <!-- TODO: Add role check middleware to show only for admin users -->
-                <NuxtLink :to="ROUTE_NAMES.ADMIN.INDEX"
+                <NuxtLink v-if="isAdmin" :to="ROUTE_NAMES.ADMIN.INDEX"
                     class="flex items-center gap-3 text-primary px-3"
                     @click="$emit('close')">
                     <Icon name="tabler:settings" class="w-5 h-5" />
@@ -66,7 +65,7 @@
 <script setup>
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES'
 
-const { user } = useAuth()
+const { user, role, fetchRole } = useAuth()
 
 const props = defineProps({
     isOpen: {
@@ -78,7 +77,18 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 const loggingOut = ref(false)
+
+// Use computed to reactively check if user is admin based on cached role
+const isAdmin = computed(() => role.value === 'admin')
+
 const router = useRouter()
+
+// Fetch role when user logs in
+watch(user, async (newUser) => {
+    if (newUser) {
+        await fetchRole()
+    }
+}, { immediate: true })
 
 async function handleSignOut() {
     if (loggingOut.value) return;
