@@ -1,7 +1,7 @@
 <template>
     <DefaultMain>
         <DefaultSection class="h-screen justify-center lg:!gap-9">
-            <HeadingH1>¡Ups! Página no encontrada</HeadingH1>
+            <HeadingH2>¡Ups! Página no encontrada</HeadingH2>
             <p class="max-w-[27.5rem] lg:max-w-[35rem] text-center lg:text-xl">
                 Parece que has tomado un desvío inesperado. La página que buscas no está disponible o ha cambiado de
                 dirección.

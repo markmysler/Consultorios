@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Crear Consultorio</HeadingH1>
+        <HeadingH2>Crear Consultorio</HeadingH2>
 
         <RoomForm @submit="handleSubmit" @cancel="handleCancel" />
     </DefaultSection>

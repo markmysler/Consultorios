@@ -1,6 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Crear Piso</HeadingH1>
+        <HeadingH2>Crear Piso</HeadingH2>
 
         <FloorForm @submit="handleSubmit" @cancel="handleCancel" />
     </DefaultSection>

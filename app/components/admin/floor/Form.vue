@@ -1,45 +1,42 @@
 <template>
-    <form @submit.prevent="handleSubmit" class="space-y-6">
-        <div>
-            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Piso
-            </label>
-            <input
-                id="name"
+    <FormLayout @submit.prevent="handleSubmit">
+        <FormFieldsContainer>
+            <FormTextField
                 v-model="formData.name"
-                type="text"
+                label="Nombre del Sector"
+                id="name"
+                placeholder="Ingrese el nombre del sector (ej: A, B, C)"
                 required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="Ingrese el nombre del piso (ej: Planta Baja, Piso 1)"
+                :error="errors.name"
             />
-        </div>
 
-        <div>
-            <label for="display_order" class="block text-sm font-medium text-gray-700 mb-2">
-                Orden de Visualización
-            </label>
-            <input
-                id="display_order"
+            <FormTextField
                 v-model.number="formData.display_order"
-                type="number"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                label="Orden de Visualización"
+                id="display_order"
                 placeholder="Ingrese el orden (ej: 0, 1, 2)"
+                required
+                type="number"
+                :error="errors.display_order"
             />
-        </div>
+        </FormFieldsContainer>
 
-        <div class="flex gap-4 justify-end pt-4">
-            <ButtonSecondary type="button" @click="$emit('cancel')">
+        <div class="w-full flex flex-col lg:flex-row items-center gap-5 lg:gap-8 mt-3">
+            <ButtonSecondary @click="$emit('cancel')" type="button">
                 Cancelar
             </ButtonSecondary>
-            <ButtonPrimary type="submit">
-                {{ isEditing ? 'Actualizar' : 'Crear' }} Piso
+
+            <ButtonPrimary type="submit" :disabled="submitting">
+                <Icon v-if="submitting" name="tabler:loader-2" class="w-4 h-4 animate-spin mr-2" />
+                {{ submitting ? (isEditing ? 'Actualizando...' : 'Creando...') : (isEditing ? 'Actualizar Sector' : 'Crear Sector') }}
             </ButtonPrimary>
         </div>
-    </form>
+    </FormLayout>
 </template>
 
 <script setup>
+const { error: showValidationError } = useNotification()
+
 const props = defineProps({
     isEditing: {
         type: Boolean,
@@ -53,19 +50,74 @@ const props = defineProps({
 
 const emit = defineEmits(['submit', 'cancel'])
 
+const submitting = ref(false)
+
 const formData = reactive({
-    name: props.initialData?.name || '',
-    display_order: props.initialData?.display_order || 0
+    name: '',
+    display_order: 0
 })
 
-watch(() => props.initialData, (newData) => {
-    if (newData) {
-        formData.name = newData.name || ''
-        formData.display_order = newData.display_order || 0
-    }
-}, { deep: true })
+const errors = reactive({
+    name: '',
+    display_order: ''
+})
 
-const handleSubmit = () => {
-    emit('submit', { ...formData })
+onMounted(() => {
+    if (props.isEditing && props.initialData) {
+        Object.assign(formData, {
+            name: props.initialData.name || '',
+            display_order: props.initialData.display_order ?? 0
+        })
+    }
+})
+
+const validateForm = () => {
+    Object.keys(errors).forEach(key => {
+        errors[key] = ''
+    })
+
+    let isValid = true
+
+    if (!formData.name.trim()) {
+        errors.name = 'El nombre del sector es requerido'
+        isValid = false
+    } else if (formData.name.trim().length < 1) {
+        errors.name = 'El nombre debe tener al menos 1 carácter'
+        isValid = false
+    }
+
+    if (formData.display_order === '' || formData.display_order === null || formData.display_order === undefined) {
+        errors.display_order = 'El orden de visualización es requerido'
+        isValid = false
+    } else if (typeof formData.display_order !== 'number' || formData.display_order < 0) {
+        errors.display_order = 'El orden debe ser un número mayor o igual a 0'
+        isValid = false
+    }
+
+    return isValid
+}
+
+const handleSubmit = async () => {
+    if (!validateForm()) {
+        showValidationError('Por favor, completa todos los campos requeridos', {
+            title: 'Validación incompleta'
+        })
+        return
+    }
+
+    submitting.value = true
+
+    try {
+        const floorData = {
+            name: formData.name.trim(),
+            display_order: formData.display_order
+        }
+
+        emit('submit', floorData)
+    } catch (error) {
+        console.error('Error in form submission:', error)
+    } finally {
+        submitting.value = false
+    }
 }
 </script>

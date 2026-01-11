@@ -24,10 +24,10 @@ export const ROUTE_NAMES = {
         OFFICES: '/admin/consultorios',
         CREATE_OFFICE: '/admin/consultorios/create',
         EDIT_OFFICE: (id) => `/admin/consultorios/edit/${id}`,
-        // Pisos
-        FLOORS: '/admin/pisos',
-        CREATE_FLOOR: '/admin/pisos/create',
-        EDIT_FLOOR: (id) => `/admin/pisos/edit/${id}`,
+        // Sectores
+        FLOORS: '/admin/sectores',
+        CREATE_FLOOR: '/admin/sectores/create',
+        EDIT_FLOOR: (id) => `/admin/sectores/edit/${id}`,
         // Licencias
         LICENSES: '/admin/licencias',
         CREATE_LICENSE: '/admin/licencias/create',

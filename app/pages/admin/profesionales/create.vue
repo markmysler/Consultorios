@@ -1,7 +1,6 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Crear Profesional</HeadingH1>
-
+        <HeadingH2>Crear Profesional</HeadingH2>
         <DoctorForm @submit="handleSubmit" @cancel="handleCancel" />
     </DefaultSection>
 </template>

@@ -1,7 +1,7 @@
 <template>
     <DefaultSection>
-        <HeadingH1>Consultorios</HeadingH1>
-        <ButtonPrimary @click="handleCreate">
+        <HeadingH2>Consultorios</HeadingH2>
+        <ButtonPrimary @click="handleCreate" class="flex justify-center items-center">
             <Icon name="tabler:plus" class="w-5 h-5 mr-2" />
             Nuevo Consultorio
         </ButtonPrimary>
@@ -9,14 +9,14 @@
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
 
-        <div v-else-if="rooms.length === 0" class="text-center py-12">
+        <div v-else-if="rooms.length === 0" class="text-center py-6">
             <Icon name="tabler:door" class="w-16 h-16" />
             <p class="text-dark text-lg">No hay consultorios disponibles</p>
         </div>
 
         <TableLayout v-else :data="rooms" :columns="tabla.columns"
             :empty-state-text="`No hay consultorios creados`" table-name="consultorios" :show-actions="true"
-            :show-delete="true" @edit="handleEdit" @delete="handleDelete" />
+            :show-delete="true" :delete-warning-getter="getDeleteWarning" @edit="handleEdit" @delete="handleDelete" />
     </DefaultSection>
 </template>
 
@@ -30,17 +30,12 @@ const { success: showSuccess, error: showError } = useNotification()
 const tabla = {
     columns: [
         {
-            key: 'numero',
-            label: 'Número',
-            type: 'number'
-        },
-        {
-            key: 'nombre',
+            key: 'name',
             label: 'Nombre',
         },
         {
-            key: 'piso.nombre',
-            label: 'Piso',
+            key: 'floors.name',
+            label: 'Sector',
         }
     ]
 }
@@ -52,6 +47,10 @@ onMounted(async () => {
         console.error('Error loading rooms:', err)
     }
 })
+
+const getDeleteWarning = (room) => {
+    return 'Al eliminar este consultorio se eliminarán TODOS los horarios asignados a este consultorio.'
+}
 
 const handleCreate = () => {
     navigateTo(ROUTE_NAMES.ADMIN.CREATE_OFFICE)
@@ -65,6 +64,7 @@ const handleDelete = async (room) => {
     try {
         await deleteRoom(room.id)
         showSuccess('Consultorio eliminado correctamente')
+        await fetchRooms()
     } catch (err) {
         showError('Error al eliminar el consultorio')
         console.error('Error deleting room:', err)

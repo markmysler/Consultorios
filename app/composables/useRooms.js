@@ -2,7 +2,7 @@ export function useRooms() {
   const supabase = useSupabaseClient()
 
   const rooms = ref([])
-  const currentRoom = (null)
+  const currentRoom = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
