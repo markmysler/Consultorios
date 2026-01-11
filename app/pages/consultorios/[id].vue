@@ -12,38 +12,47 @@
                 </p>
             </div>
 
-            <FormDateField v-model="selectedDate" label="Seleccione una fecha" id="date" />
+            <FormFieldsContainer>
+                <FormDateField v-model="selectedDate" label="Seleccione una fecha" id="date" />
+                <FormSelect v-model="selectedTime" label="Seleccione un horario" :options="timeOptions"
+                    placeholder="Seleccione horario..." />
+            </FormFieldsContainer>
 
-            <div class="space-y-3">
-                <div v-if="daySchedule.length === 0" class="text-center py-8 text-gray-dark italic">
-                    No hay horarios asignados para esta fecha
+            <div v-if="scheduleLoading" class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+
+            <div v-else class="space-y-3">
+                <div v-if="filteredSchedule.length === 0" class="text-center py-8 text-gray-dark italic">
+                    No hay horarios asignados para esta fecha y hora
                 </div>
 
-                <div v-else>
-                    <div
-                        v-for="slot in daySchedule"
-                        :key="slot.id"
-                        :class="[
-                            'rounded-lg p-4 border-l-4',
-                            slot.available
-                                ? 'bg-success/20 border-success'
-                                : 'bg-error/20 border-error'
-                        ]"
-                    >
-                        <div v-if="slot.available">
-                            <p class="text-success font-bold flex items-center gap-2">
-                                <Icon name="tabler:circle-check" class="w-5 h-5" />
-                                LIBRE
-                            </p>
-                            <p class="text-dark mt-2">{{ slot.time }}</p>
+                <div v-else class="flex flex-col gap-5">
+                    <div v-for="slot in filteredSchedule" :key="slot.id"
+                        class="w-full bg-gray-dark rounded-md shadow-md shadow-black/10 overflow-hidden">
+                        <div v-if="slot.available" class="flex text-xs lg:text-base text-success font-bold">
+                            <span
+                                class="min-w-[8.25rem] md:min-w-52 flex items-center gap-2 whitespace-nowrap flex-shrink-0 bg-success rounded-br-md text-center text-primary py-2 px-2.5 lg:px-4">
+                                <p class="w-full">LIBRE</p>
+                            </span>
+                            <span class="flex-1 py-2 px-3 lg:px-5 whitespace-nowrap text-primary font-bold overflow-hidden text-ellipsis">{{
+                                slot.time }}</span>
                         </div>
 
                         <div v-else>
-                            <p class="text-dark font-bold">{{ slot.doctorName }}</p>
-                            <p class="text-dark mt-1">{{ slot.time }}</p>
-                            <p class="text-sm text-dark/70 mt-1">
-                                Nombre de la agenda: "{{ slot.agendaName }}"
-                            </p>
+                            <div class="flex text-xs lg:text-base text-primary font-bold">
+                                <span
+                                    class="min-w-[8.25rem] md:min-w-52 flex-shrink-0 bg-secondary rounded-br-md text-center py-2 px-2.5 lg:px-4 whitespace-nowrap">{{
+                                        slot.doctorName }}</span>
+                                <span
+                                    class="flex-1 py-2 px-3 lg:px-5 whitespace-nowrap overflow-hidden text-ellipsis">{{
+                                        slot.time }}</span>
+                            </div>
+                            <div class="py-2 px-3 lg:px-5">
+                                <p class="text-xs lg:text-base text-primary">
+                                    Nombre de la agenda: "{{ slot.agendaName }}"
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -68,26 +77,147 @@ const { currentFloor, fetchFloorById } = useFloors()
 const { getWeeklySchedule } = useRoomSchedule()
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedTime = ref(null)
 const weeklySchedule = ref({})
 const daySchedule = ref([])
 const scheduleLoading = ref(false)
 
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
-const updateDaySchedule = (date) => {
+// Generate time options in 30-minute intervals from 07:00 to 20:00
+const timeOptions = computed(() => {
+    const options = []
+    for (let hour = 7; hour <= 20; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            if (hour === 20 && minute > 0) break // Stop at 20:00
+            const timeValue = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+            options.push({
+                label: `${timeValue}hs`,
+                value: timeValue
+            })
+        }
+    }
+    return options
+})
+
+// Helper to convert time to minutes
+const timeToMinutes = (timeStr) => {
+    const [hour, minute] = timeStr.split(':').map(Number)
+    return hour * 60 + minute
+}
+
+// Helper to convert minutes to time string
+const minutesToTime = (minutes) => {
+    const hour = Math.floor(minutes / 60)
+    const minute = minutes % 60
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
+// Helper to format time from HH:MM:SS to HH:MM
+const formatTime = (timeStr) => {
+    if (!timeStr) return timeStr
+    return timeStr.substring(0, 5) // Takes only HH:MM
+}
+
+const updateDaySchedule = async (date) => {
     const dayOfWeek = new Date(date).getDay()
     const dayName = dayNames[dayOfWeek]
     const schedule = weeklySchedule.value[dayName] || []
 
-    daySchedule.value = schedule.map((slot, index) => ({
-        id: index,
-        available: false, // Todos los slots tienen un doctor asignado
-        doctorName: slot.doctor_name,
-        time: `${slot.start_time} - ${slot.end_time}`,
-        agendaName: slot.doctor_name,
-        doctor_cuil: slot.doctor_cuil
-    }))
+    // Sort schedule by start time
+    const sortedSchedule = [...schedule].sort((a, b) =>
+        timeToMinutes(a.start_time) - timeToMinutes(b.start_time)
+    )
+
+    const allSlots = []
+    const dayStart = 7 * 60 // 07:00
+    const dayEnd = 20 * 60 // 20:00
+    let currentTime = dayStart
+
+    // If no schedule, entire day is free
+    if (sortedSchedule.length === 0) {
+        allSlots.push({
+            id: 'free-07:00-20:00',
+            doctorName: null,
+            time: '07:00hs - 20:00hs',
+            agendaName: null,
+            available: true,
+            start_time: '07:00',
+            end_time: '20:00'
+        })
+    } else {
+        // Process each scheduled slot and gaps between them
+        for (const slot of sortedSchedule) {
+            const slotStart = timeToMinutes(slot.start_time)
+            const slotEnd = timeToMinutes(slot.end_time)
+
+            // Add free slot before this scheduled slot if there's a gap
+            if (currentTime < slotStart) {
+                const freeStart = minutesToTime(currentTime)
+                const freeEnd = minutesToTime(slotStart)
+                allSlots.push({
+                    id: `free-${freeStart}-${freeEnd}`,
+                    doctorName: null,
+                    time: `${freeStart}hs - ${freeEnd}hs`,
+                    agendaName: null,
+                    available: true,
+                    start_time: freeStart,
+                    end_time: freeEnd
+                })
+            }
+
+            // Add the scheduled slot
+            allSlots.push({
+                id: `${slot.start_time}-${slot.end_time}`,
+                doctorName: slot.doctor_name,
+                time: `${formatTime(slot.start_time)}hs - ${formatTime(slot.end_time)}hs`,
+                agendaName: slot.doctor_name,
+                doctor_cuil: slot.doctor_cuil,
+                available: false,
+                start_time: slot.start_time,
+                end_time: slot.end_time
+            })
+
+            currentTime = slotEnd
+        }
+
+        // Add free slot at the end if there's time remaining
+        if (currentTime < dayEnd) {
+            const freeStart = minutesToTime(currentTime)
+            const freeEnd = minutesToTime(dayEnd)
+            allSlots.push({
+                id: `free-${freeStart}-${freeEnd}`,
+                doctorName: null,
+                time: `${freeStart}hs - ${freeEnd}hs`,
+                agendaName: null,
+                available: true,
+                start_time: freeStart,
+                end_time: freeEnd
+            })
+        }
+    }
+
+    daySchedule.value = allSlots
 }
+
+const filteredSchedule = computed(() => {
+    if (!selectedTime.value) {
+        return daySchedule.value
+    }
+
+    // Filter slots that contain the selected time
+    return daySchedule.value.filter(slot => {
+        const [startHour, startMinute] = slot.start_time.split(':').map(Number)
+        const [endHour, endMinute] = slot.end_time.split(':').map(Number)
+        const [selectedHour, selectedMinute] = selectedTime.value.split(':').map(Number)
+
+        const startMinutes = startHour * 60 + startMinute
+        const endMinutes = endHour * 60 + endMinute
+        const selectedMinutes = selectedHour * 60 + selectedMinute
+
+        return selectedMinutes >= startMinutes && selectedMinutes < endMinutes
+    })
+})
 
 onMounted(async () => {
     try {
@@ -102,7 +232,7 @@ onMounted(async () => {
         // Cargar agenda del consultorio
         scheduleLoading.value = true
         weeklySchedule.value = await getWeeklySchedule(id)
-        updateDaySchedule(selectedDate.value)
+        await updateDaySchedule(selectedDate.value)
         scheduleLoading.value = false
     } catch (err) {
         console.error('Error loading room:', err)
@@ -110,8 +240,10 @@ onMounted(async () => {
     }
 })
 
-// Watch selectedDate para actualizar la agenda
-watch(selectedDate, async (newDate) => {
-    updateDaySchedule(newDate)
+// Watch selectedDate and selectedTime to update the schedule
+watch([selectedDate, selectedTime], async ([newDate]) => {
+    scheduleLoading.value = true
+    await updateDaySchedule(newDate)
+    scheduleLoading.value = false
 })
 </script>

@@ -48,8 +48,8 @@
                 <button v-for="professional in searchResults" :key="professional.id"
                     @click="handleProfessionalClick(professional.id)"
                     class="w-full flex items-center font-bold text-xs md:text-xl text-primary rounded-md shadow-md shadow-black/10 overflow-hidden">
-                    <span class="w-1/3 bg-secondary py-2 lg:py-4 px-3">{{ professional.specialty }}</span>
-                    <span class="w-2/3 bg-gray-dark py-2 lg:py-4 px-3">{{ professional.fullname }}</span>
+                    <span class="min-w-[8.25rem] md:min-w-52 flex-shrink-0 bg-secondary py-2 lg:py-4 px-3 whitespace-nowrap">{{ professional.specialty }}</span>
+                    <span class="flex-1 bg-gray-dark py-2 lg:py-4 px-3 whitespace-nowrap overflow-hidden text-ellipsis">{{ professional.fullname }}</span>
                 </button>
             </div>
         </div>
