@@ -45,20 +45,28 @@
                 </NuxtLink>
             </div>
 
-            <button @click="handleSignOut" :disabled="loggingOut"
-                class="h-12 flex items-center gap-3 bg-primary rounded-xl text-light font-light py-3 px-6">
-                <Icon v-if="!loggingOut" name="tabler:logout" class="w-5 h-5" />
-                <Icon v-else name="tabler:loader-2" class="w-5 h-5 animate-spin" />
-                <span class="font-medium">
-                    {{ loggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión' }}
-                </span>
-            </button>
+            <div class="flex flex-col gap-3">
+                <p v-if="user" class="text-sm text-primary px-3">
+                    Sesión iniciada como <span class="font-medium">{{ user.email }}</span>
+                </p>
+                
+                <button @click="handleSignOut" :disabled="loggingOut"
+                    class="h-12 flex items-center gap-3 bg-primary rounded-xl text-light font-light py-3 px-6">
+                    <Icon v-if="!loggingOut" name="tabler:logout" class="w-5 h-5" />
+                    <Icon v-else name="tabler:loader-2" class="w-5 h-5 animate-spin" />
+                    <span class="font-medium">
+                        {{ loggingOut ? 'Cerrando sesión...' : 'Cerrar Sesión' }}
+                    </span>
+                </button>
+            </div>
         </nav>
     </Transition>
 </template>
 
 <script setup>
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES'
+
+const { user } = useAuth()
 
 const props = defineProps({
     isOpen: {
