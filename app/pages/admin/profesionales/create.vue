@@ -10,6 +10,10 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useDoctors } from '~/composables/useDoctors.js'
 import DoctorForm from '~/components/admin/doctor/Form.vue'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { createDoctor } = useDoctors()
 const { success: showSuccess, error: showError } = useNotification()
 

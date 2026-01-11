@@ -16,6 +16,10 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useFloors } from '~/composables/useFloors.js'
 import FloorForm from '~/components/admin/floor/Form.vue'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const route = useRoute()
 const { currentFloor, loading, fetchFloorById, updateFloor } = useFloors()
 const { success: showSuccess, error: showError } = useNotification()

@@ -24,6 +24,10 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useLeaveRequests } from '~/composables/useLeaveRequests.js'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { leaveRequests, loading, fetchLeaveRequests, deleteLeaveRequest } = useLeaveRequests()
 const { success: showSuccess, error: showError } = useNotification()
 

@@ -28,6 +28,10 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRecurringAvailability } from '~/composables/useRecurringAvailability.js'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { recurringAvailabilities, loading, fetchRecurringAvailabilities, deleteRecurringAvailability } = useRecurringAvailability()
 const { success: showSuccess, error: showError } = useNotification()
 

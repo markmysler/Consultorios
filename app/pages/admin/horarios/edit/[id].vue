@@ -16,6 +16,10 @@ import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useRecurringAvailability } from '~/composables/useRecurringAvailability.js'
 import RecurringAvailabilityForm from '~/components/admin/recurring-availability/Form.vue'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const route = useRoute()
 const { currentRecurringAvailability, loading, fetchRecurringAvailabilityById, updateRecurringAvailability } = useRecurringAvailability()
 const { success: showSuccess, error: showError } = useNotification()

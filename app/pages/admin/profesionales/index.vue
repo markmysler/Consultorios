@@ -24,6 +24,10 @@
 import { ROUTE_NAMES } from '~/constants/ROUTE_NAMES.js'
 import { useDoctors } from '~/composables/useDoctors.js'
 
+definePageMeta({
+    middleware: 'admin'
+})
+
 const { doctors, loading, fetchDoctors, deleteDoctor } = useDoctors()
 const { success: showSuccess, error: showError } = useNotification()
 
