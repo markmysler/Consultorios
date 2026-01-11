@@ -15,6 +15,27 @@
                     <Icon name="tabler:x" class="w-6 h-6 text-primary" />
                 </button>
 
+                <NuxtLink :to="ROUTE_NAMES.HOME"
+                    class="flex items-center gap-3 text-primary px-3"
+                    @click="$emit('close')">
+                    <Icon name="tabler:building" class="w-5 h-5" />
+                    <span class="font-medium">Sectores</span>
+                </NuxtLink>
+
+                <NuxtLink :to="ROUTE_NAMES.PROFESSIONALS_SEARCH"
+                    class="flex items-center gap-3 text-primary px-3"
+                    @click="$emit('close')">
+                    <Icon name="tabler:users" class="w-5 h-5" />
+                    <span class="font-medium">Profesionales</span>
+                </NuxtLink>
+
+                <NuxtLink :to="ROUTE_NAMES.OFFICES_SEARCH"
+                    class="flex items-center gap-3 text-primary px-3"
+                    @click="$emit('close')">
+                    <Icon name="tabler:door" class="w-5 h-5" />
+                    <span class="font-medium">Consultorios</span>
+                </NuxtLink>
+
                 <!-- TODO: Add role check middleware to show only for admin users -->
                 <NuxtLink :to="ROUTE_NAMES.ADMIN.INDEX"
                     class="flex items-center gap-3 text-primary px-3"
