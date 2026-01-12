@@ -82,7 +82,20 @@ const weeklySchedule = ref({})
 const daySchedule = ref([])
 const scheduleLoading = ref(false)
 
-const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+// Convert JavaScript day (0=Sunday) to ISO day (1=Monday, 7=Sunday)
+const jsToIsoDay = (jsDay) => {
+    return jsDay === 0 ? 7 : jsDay
+}
+
+const dayNames = {
+    1: 'Lunes',
+    2: 'Martes',
+    3: 'Miércoles',
+    4: 'Jueves',
+    5: 'Viernes',
+    6: 'Sábado',
+    7: 'Domingo'
+}
 
 // Generate time options in 30-minute intervals from 07:00 to 20:00
 const timeOptions = computed(() => {
@@ -120,8 +133,11 @@ const formatTime = (timeStr) => {
 }
 
 const updateDaySchedule = async (date) => {
-    const dayOfWeek = new Date(date).getDay()
-    const dayName = dayNames[dayOfWeek]
+    // Parse date in local timezone to avoid timezone issues
+    const [year, month, day] = date.split('-').map(Number)
+    const jsDay = new Date(year, month - 1, day).getDay()
+    const isoDay = jsToIsoDay(jsDay) // Convert to 1-7 system
+    const dayName = dayNames[isoDay]
     const schedule = weeklySchedule.value[dayName] || []
 
     // Sort schedule by start time
