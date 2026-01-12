@@ -1,7 +1,7 @@
+import { WEEKDAY_NAMES } from '~/constants/WEEK_DAYS.js'
+
 export const useRoomSchedule = () => {
   const supabase = useSupabaseClient()
-
-  const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
   const getWeeklySchedule = async (roomId) => {
     const today = new Date().toISOString().split('T')[0]
@@ -33,11 +33,13 @@ export const useRoomSchedule = () => {
     const schedule = {}
 
     for (const row of availability) {
-      // days_of_week es un array de números [1, 2, 3]
+      // days_of_week es un array de números [1, 2, 3] donde 1=Lunes, 7=Domingo
       const daysArray = row.days_of_week || []
 
       for (const dayNum of daysArray) {
-        const dayName = dayNames[dayNum]
+        const dayName = WEEKDAY_NAMES[dayNum]
+
+        if (!dayName) continue // Skip invalid day numbers
 
         if (!schedule[dayName]) {
           schedule[dayName] = []
