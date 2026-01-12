@@ -21,7 +21,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { currentRecurringAvailability, loading, fetchRecurringAvailabilityById, updateRecurringAvailability } = useRecurringAvailability()
+const { currentRecurringAvailability, loading, fetchRecurringAvailabilityById, updateRecurringAvailability, checkForOverlap } = useRecurringAvailability()
 const { success: showSuccess, error: showError } = useNotification()
 
 onMounted(async () => {
@@ -38,6 +38,28 @@ onMounted(async () => {
 const handleSubmit = async (availabilityData) => {
     try {
         const id = route.params.id
+        
+        // Check for overlapping time slots (exclude current record)
+        const { hasOverlap, overlaps } = await checkForOverlap(
+            availabilityData.room_id,
+            availabilityData.days_of_week,
+            availabilityData.start_time,
+            availabilityData.end_time,
+            id
+        )
+
+        if (hasOverlap) {
+            const overlapInfo = overlaps[0]
+            showError(
+                `El consultorio ya está reservado en el horario ${overlapInfo.start_time} - ${overlapInfo.end_time}. Por favor, seleccione otro horario.`,
+                {
+                    title: 'Consultorio ya reservado',
+                    duration: 6000
+                }
+            )
+            return
+        }
+        
         await updateRecurringAvailability(id, availabilityData)
         showSuccess('Horario actualizado correctamente')
         navigateTo(ROUTE_NAMES.ADMIN.SCHEDULES)

@@ -15,11 +15,31 @@ definePageMeta({
     middleware: 'admin'
 })
 
-const { createRecurringAvailability } = useRecurringAvailability()
+const { createRecurringAvailability, checkForOverlap } = useRecurringAvailability()
 const { success: showSuccess, error: showError } = useNotification()
 
 const handleSubmit = async (availabilityData) => {
     try {
+        // Check for overlapping time slots
+        const { hasOverlap, overlaps } = await checkForOverlap(
+            availabilityData.room_id,
+            availabilityData.days_of_week,
+            availabilityData.start_time,
+            availabilityData.end_time
+        )
+
+        if (hasOverlap) {
+            const overlapInfo = overlaps[0]
+            showError(
+                `El consultorio ya está reservado en el horario ${overlapInfo.start_time} - ${overlapInfo.end_time}. Por favor, seleccione otro horario.`,
+                {
+                    title: 'Consultorio ya reservado',
+                    duration: 6000
+                }
+            )
+            return
+        }
+
         await createRecurringAvailability(availabilityData)
         showSuccess('Horario creado correctamente')
         navigateTo(ROUTE_NAMES.ADMIN.SCHEDULES)
