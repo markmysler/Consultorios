@@ -20,7 +20,6 @@ const { success: showSuccess, error: showError } = useNotification()
 
 const handleSubmit = async (availabilityData) => {
     try {
-        // Check for overlapping time slots
         const { hasOverlap, overlaps } = await checkForOverlap(
             availabilityData.room_id,
             availabilityData.days_of_week,

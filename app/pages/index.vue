@@ -13,7 +13,7 @@
 
         <div v-else class="w-full max-w-2xl grid grid-cols-2 gap-4 lg:gap-6">
             <button v-for="floor in floors" :key="floor.id" @click="handleSectorClick(floor.id)"
-                class="bg-primary text-light font-bold text-4xl rounded-xl shadow-lg py-8 lg:py-12">
+                class="bg-primary text-light md:text-xl lg:text-2xl font-bold rounded-xl shadow-lg px-6 py-8 lg:py-12">
                 {{ floor.name }}
             </button>
         </div>

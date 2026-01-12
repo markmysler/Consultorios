@@ -6,7 +6,6 @@ export const useDoctorSchedule = () => {
   const getDoctorWeeklySchedule = async (doctorId) => {
     const today = new Date().toISOString().split('T')[0]
 
-    // 1. Fetch recurring availability
     const { data: availability, error: availError } = await supabase
       .from('recurring_availability')
       .select(`
@@ -31,19 +30,17 @@ export const useDoctorSchedule = () => {
     const schedule = {}
 
     for (const row of availability) {
-      // days_of_week es un array de números [1, 2, 3] donde 1=Lunes, 7=Domingo
       const daysArray = row.days_of_week || []
 
       for (const dayNum of daysArray) {
         const dayName = WEEKDAY_NAMES[dayNum]
 
-        if (!dayName) continue // Skip invalid day numbers
+        if (!dayName) continue
 
         if (!schedule[dayName]) {
           schedule[dayName] = []
         }
 
-        // Por ahora sin filtrar por licencias - simplificado
         schedule[dayName].push({
           start_time: row.start_time,
           end_time: row.end_time,

@@ -56,18 +56,15 @@ export function useRecurringAvailability() {
     return supabase.from('recurring_availability').delete().eq('id', id)
   }
 
-  // Check if there are overlapping time slots for the same room on any of the selected days
   async function checkForOverlap(roomId, daysOfWeek, startTime, endTime, excludeId = null) {
     const today = new Date().toISOString().split('T')[0]
     
-    // Fetch all recurring availabilities for this room that are still valid
     let query = supabase
       .from('recurring_availability')
       .select('id, days_of_week, start_time, end_time, valid_to')
       .eq('room_id', roomId)
       .or(`valid_to.is.null,valid_to.gte.${today}`)
     
-    // Exclude current record when editing
     if (excludeId) {
       query = query.neq('id', excludeId)
     }
@@ -83,12 +80,10 @@ export function useRecurringAvailability() {
       return { hasOverlap: false, overlaps: [] }
     }
     
-    // Helper function to check if two time ranges overlap
     const timesOverlap = (start1, end1, start2, end2) => {
       return start1 < end2 && start2 < end1
     }
     
-    // Helper function to check if two day arrays have common days
     const haveSameDays = (days1, days2) => {
       return days1.some(day => days2.includes(day))
     }
@@ -96,9 +91,7 @@ export function useRecurringAvailability() {
     const overlaps = []
     
     for (const existing of existingAvailabilities) {
-      // Check if they share any days
       if (haveSameDays(daysOfWeek, existing.days_of_week)) {
-        // Check if times overlap
         if (timesOverlap(startTime, endTime, existing.start_time, existing.end_time)) {
           overlaps.push({
             id: existing.id,

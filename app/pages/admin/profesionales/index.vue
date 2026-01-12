@@ -40,6 +40,40 @@ const tabla = {
         {
             key: 'cuil',
             label: 'CUIL',
+        },
+        {
+            key: 'shift',
+            label: 'Turno',
+            format: (value) => {
+                if (!value) return '-'
+                return value.charAt(0).toUpperCase() + value.slice(1)
+            }
+        },
+        {
+            key: 'specializations',
+            label: 'Especializaciones',
+            format: (_value, row) => {
+                if (!row.doctor_specializations || row.doctor_specializations.length === 0) {
+                    return '-'
+                }
+                return row.doctor_specializations
+                    .map(ds => ds.specializations?.name)
+                    .filter(Boolean)
+                    .join(', ')
+            }
+        },
+        {
+            key: 'subspecializations',
+            label: 'Subespecializaciones',
+            format: (_value, row) => {
+                if (!row.doctor_sub_specializations || row.doctor_sub_specializations.length === 0) {
+                    return '-'
+                }
+                return row.doctor_sub_specializations
+                    .map(dss => dss.sub_specializations?.name)
+                    .filter(Boolean)
+                    .join(', ')
+            }
         }
     ]
 }

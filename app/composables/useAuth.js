@@ -26,7 +26,6 @@ export const useAuth = () => {
     return role.value
   }
 
-  // Watch for user logout and clear role
   watch(user, (newUser) => {
     if (!newUser) {
       role.value = null

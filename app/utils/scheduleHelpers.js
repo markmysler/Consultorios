@@ -1,35 +1,23 @@
-/**
- * Shared schedule helpers for doctor and room schedules
- */
-
-/**
- * Subtract a leave interval from an availability interval
- * Returns an array of remaining availability segments
- */
 export const subtractInterval = (availability, leave) => {
   const aStart = availability.start
   const aEnd = availability.end
   const lStart = leave.start
   const lEnd = leave.end
 
-  // No overlap
   if (lEnd <= aStart || lStart >= aEnd) {
     return [availability]
   }
 
-  // Fully covered
   if (lStart <= aStart && lEnd >= aEnd) {
     return []
   }
 
   const result = []
 
-  // Trim start
   if (lStart > aStart) {
     result.push({ start: aStart, end: lStart })
   }
 
-  // Trim end
   if (lEnd < aEnd) {
     result.push({ start: lEnd, end: aEnd })
   }

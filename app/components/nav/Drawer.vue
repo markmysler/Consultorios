@@ -78,12 +78,10 @@ const emit = defineEmits(['close']);
 
 const loggingOut = ref(false)
 
-// Use computed to reactively check if user is admin based on cached role
 const isAdmin = computed(() => role.value === 'admin')
 
 const router = useRouter()
 
-// Fetch role when user logs in
 watch(user, async (newUser) => {
     if (newUser) {
         await fetchRole()

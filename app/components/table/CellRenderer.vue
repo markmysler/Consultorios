@@ -31,6 +31,10 @@ const props = defineProps({
     relatedData: {
         type: Object,
         default: () => ({})
+    },
+    item: {
+        type: Object,
+        default: () => ({})
     }
 })
 
@@ -41,6 +45,10 @@ const getImageUrl = (url) => {
 }
 
 const formatValue = (value, column) => {
+    if (column.format && typeof column.format === 'function') {
+        return column.format(value, props.item)
+    }
+
     if (value === null || value === undefined) return '-'
 
     if (column.key === 'subgrupos' && Array.isArray(value)) {

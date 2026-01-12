@@ -39,7 +39,6 @@ const handleSubmit = async (availabilityData) => {
     try {
         const id = route.params.id
         
-        // Check for overlapping time slots (exclude current record)
         const { hasOverlap, overlaps } = await checkForOverlap(
             availabilityData.room_id,
             availabilityData.days_of_week,

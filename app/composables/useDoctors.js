@@ -14,6 +14,9 @@ export function useDoctors() {
         *,
         doctor_specializations (
           specializations ( id, name )
+        ),
+        doctor_sub_specializations (
+          sub_specializations ( id, name )
         )
       `)
       .order('fullname')
@@ -27,7 +30,17 @@ export function useDoctors() {
     loading.value = true
     const { data, error: err } = await supabase
       .from('doctors')
-      .select('*')
+      .select(`
+        *,
+        doctor_specializations (
+          specialization_id,
+          specializations ( id, name )
+        ),
+        doctor_sub_specializations (
+          sub_specialization_id,
+          sub_specializations ( id, name )
+        )
+      `)
       .eq('id', id)
       .single()
 

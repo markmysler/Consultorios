@@ -82,7 +82,6 @@ const weeklySchedule = ref({})
 const daySchedule = ref([])
 const scheduleLoading = ref(false)
 
-// Convert JavaScript day (0=Sunday) to ISO day (1=Monday, 7=Sunday)
 const jsToIsoDay = (jsDay) => {
     return jsDay === 0 ? 7 : jsDay
 }
@@ -97,12 +96,11 @@ const dayNames = {
     7: 'Domingo'
 }
 
-// Generate time options in 30-minute intervals from 07:00 to 20:00
 const timeOptions = computed(() => {
     const options = []
     for (let hour = 7; hour <= 20; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
-            if (hour === 20 && minute > 0) break // Stop at 20:00
+            if (hour === 20 && minute > 0) break
             const timeValue = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
             options.push({
                 label: `${timeValue}hs`,
@@ -113,44 +111,38 @@ const timeOptions = computed(() => {
     return options
 })
 
-// Helper to convert time to minutes
 const timeToMinutes = (timeStr) => {
     const [hour, minute] = timeStr.split(':').map(Number)
     return hour * 60 + minute
 }
 
-// Helper to convert minutes to time string
 const minutesToTime = (minutes) => {
     const hour = Math.floor(minutes / 60)
     const minute = minutes % 60
     return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
-// Helper to format time from HH:MM:SS to HH:MM
 const formatTime = (timeStr) => {
     if (!timeStr) return timeStr
-    return timeStr.substring(0, 5) // Takes only HH:MM
+    return timeStr.substring(0, 5)
 }
 
 const updateDaySchedule = async (date) => {
-    // Parse date in local timezone to avoid timezone issues
     const [year, month, day] = date.split('-').map(Number)
     const jsDay = new Date(year, month - 1, day).getDay()
-    const isoDay = jsToIsoDay(jsDay) // Convert to 1-7 system
+    const isoDay = jsToIsoDay(jsDay)
     const dayName = dayNames[isoDay]
     const schedule = weeklySchedule.value[dayName] || []
 
-    // Sort schedule by start time
     const sortedSchedule = [...schedule].sort((a, b) =>
         timeToMinutes(a.start_time) - timeToMinutes(b.start_time)
     )
 
     const allSlots = []
-    const dayStart = 7 * 60 // 07:00
-    const dayEnd = 20 * 60 // 20:00
+    const dayStart = 7 * 60
+    const dayEnd = 20 * 60
     let currentTime = dayStart
 
-    // If no schedule, entire day is free
     if (sortedSchedule.length === 0) {
         allSlots.push({
             id: 'free-07:00-20:00',
@@ -162,12 +154,10 @@ const updateDaySchedule = async (date) => {
             end_time: '20:00'
         })
     } else {
-        // Process each scheduled slot and gaps between them
         for (const slot of sortedSchedule) {
             const slotStart = timeToMinutes(slot.start_time)
             const slotEnd = timeToMinutes(slot.end_time)
 
-            // Add free slot before this scheduled slot if there's a gap
             if (currentTime < slotStart) {
                 const freeStart = minutesToTime(currentTime)
                 const freeEnd = minutesToTime(slotStart)
@@ -182,7 +172,6 @@ const updateDaySchedule = async (date) => {
                 })
             }
 
-            // Add the scheduled slot
             allSlots.push({
                 id: `${slot.start_time}-${slot.end_time}`,
                 doctorName: slot.doctor_name,
@@ -197,7 +186,6 @@ const updateDaySchedule = async (date) => {
             currentTime = slotEnd
         }
 
-        // Add free slot at the end if there's time remaining
         if (currentTime < dayEnd) {
             const freeStart = minutesToTime(currentTime)
             const freeEnd = minutesToTime(dayEnd)
@@ -221,7 +209,6 @@ const filteredSchedule = computed(() => {
         return daySchedule.value
     }
 
-    // Filter slots that contain the selected time
     return daySchedule.value.filter(slot => {
         const [startHour, startMinute] = slot.start_time.split(':').map(Number)
         const [endHour, endMinute] = slot.end_time.split(':').map(Number)
@@ -240,12 +227,10 @@ onMounted(async () => {
         const id = route.params.id
         await fetchRoomById(id)
 
-        // Cargar el piso asociado
         if (currentRoom.value?.floor_id) {
             await fetchFloorById(currentRoom.value.floor_id)
         }
 
-        // Cargar agenda del consultorio
         scheduleLoading.value = true
         weeklySchedule.value = await getWeeklySchedule(id)
         await updateDaySchedule(selectedDate.value)
@@ -256,7 +241,6 @@ onMounted(async () => {
     }
 })
 
-// Watch selectedDate and selectedTime to update the schedule
 watch([selectedDate, selectedTime], async ([newDate]) => {
     scheduleLoading.value = true
     await updateDaySchedule(newDate)
