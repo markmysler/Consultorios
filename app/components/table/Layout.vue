@@ -1,17 +1,40 @@
 <template>
-    <div class="w-full max-w-[100vw] overflow-auto">
-        <table class="w-full mx-auto">
-            <thead>
-                <tr>
-                    <th v-for="column in columns" :key="column.key"
-                        class="text-center text-dark whitespace-nowrap font-medium p-3">
-                        {{ column.label }}
-                    </th>
-                    <th v-if="showActions" class="text-center text-dark whitespace-nowrap font-medium p-3">
-                        Acciones
-                    </th>
-                </tr>
-            </thead>
+    <div class="w-full max-w-[100vw]">
+        <!-- Download Section -->
+        <div v-if="showDownload && data && data.length > 0" class="flex justify-end items-center gap-3 mb-4">
+            <label for="download-format" class="text-dark font-medium text-sm">Descargar como:</label>
+            <select 
+                id="download-format" 
+                v-model="selectedFormat"
+                class="bg-light border border-dark rounded-md text-dark py-2 px-3 text-sm focus:ring-2 focus:ring-primary focus:ring-opacity-20 outline-none"
+            >
+                <option value="csv">CSV</option>
+                <option value="json">JSON</option>
+                <option value="tsv">TSV</option>
+            </select>
+            <button 
+                @click="handleDownload"
+                class="bg-primary text-light px-4 py-2 rounded-md hover:bg-opacity-90 transition-all flex items-center gap-2 text-sm font-medium"
+            >
+                <Icon name="tabler:download" class="w-4 h-4" />
+                Descargar
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="w-full overflow-auto">
+            <table class="w-full mx-auto">
+                <thead>
+                    <tr>
+                        <th v-for="column in columns" :key="column.key"
+                            class="text-center text-dark whitespace-nowrap font-medium p-3">
+                            {{ column.label }}
+                        </th>
+                        <th v-if="showActions" class="text-center text-dark whitespace-nowrap font-medium p-3">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
 
             <tbody>
                 <tr v-for="(item, index) in data" :key="getRowKey(item, index)"
@@ -50,6 +73,7 @@
                 <p>{{ emptyStateText }}</p>
             </slot>
         </div>
+        </div>
 
         <ModalDelete :is-open="deleteModal.isOpen" :item-name="deleteModal.itemName" :table-name="deleteModal.tableName"
             :warning-message="deleteModal.warningMessage" @cancel="closeDeleteModal" @confirm="confirmDelete" />
@@ -58,6 +82,8 @@
 
 
 <script setup>
+import { useTableDownload } from '~/composables/useTableDownload.js'
+
 const props = defineProps({
     data: {
         type: Array,
@@ -94,10 +120,17 @@ const props = defineProps({
     deleteWarningGetter: {
         type: Function,
         default: null
+    },
+    showDownload: {
+        type: Boolean,
+        default: true
     }
 })
 
 const emit = defineEmits(['edit', 'delete'])
+
+const { downloadTable } = useTableDownload()
+const selectedFormat = ref('csv')
 
 const deleteModal = ref({
     isOpen: false,
@@ -156,5 +189,9 @@ const closeDeleteModal = () => {
 const confirmDelete = () => {
     emit('delete', deleteModal.value.item, deleteModal.value.index)
     closeDeleteModal()
+}
+
+const handleDownload = () => {
+    downloadTable(props.data, props.columns, props.tableName, selectedFormat.value)
 }
 </script>
