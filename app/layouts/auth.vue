@@ -3,5 +3,4 @@
     <DefaultMain>
         <slot />
     </DefaultMain>
-    <DefaultFooter />
 </template>

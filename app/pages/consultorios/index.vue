@@ -100,14 +100,12 @@ const isAvailableFree = computed(() => {
     return selectedAvailability.value === 'available'
 })
 
-// Watcher para auto-seleccionar "Ocupado" cuando se elige especialidad
 watch(selectedSpecialty, (newValue) => {
     if (newValue) {
         selectedAvailability.value = 'occupied'
     }
 })
 
-// Watcher para limpiar especialidad cuando se marca "Libre"
 watch(selectedAvailability, (newValue) => {
     if (newValue === 'available') {
         selectedSpecialty.value = ''
@@ -150,27 +148,22 @@ onMounted(async () => {
 const handleSearch = async () => {
     hasSearched.value = true
 
-    // TODO: Implementar búsqueda real con filtros
     let results = [...rooms.value]
 
-    // Filtrar por query de búsqueda
     if (searchQuery.value.trim()) {
         results = results.filter(room =>
             room.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
         )
     }
 
-    // Filtrar por sector
     if (selectedSector.value) {
         results = results.filter(room => room.floor_id === selectedSector.value)
     }
 
-    // Filtrar por número específico
     if (selectedNumber.value) {
         results = results.filter(room => room.id === selectedNumber.value)
     }
 
-    // Mapear con datos del sector
     searchResults.value = results.map(room => {
         const floor = floors.value.find(f => f.id === room.floor_id)
         const sectorName = floor ? floor.name : 'desconocido'

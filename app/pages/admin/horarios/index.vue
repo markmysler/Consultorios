@@ -38,6 +38,10 @@ const { success: showSuccess, error: showError } = useNotification()
 const tabla = {
     columns: [
         {
+            key: 'id',
+            label: 'ID',
+        },
+        {
             key: 'recurring_name',
             label: 'Nombre de Agenda',
         },
@@ -86,7 +90,6 @@ const formatDays = (daysArray) => {
         .join(', ')
 }
 
-// Enriquecer los datos con un campo 'name' para el modal de eliminación
 const enrichedAvailabilities = computed(() => {
     return recurringAvailabilities.value.map(availability => {
         const doctorName = availability.doctors?.fullname || 'Profesional'

@@ -10,7 +10,6 @@ export function useRooms() {
     loading.value = true
     
     try {
-      // Use database function for optimal performance
       const targetDateTime = checkDateTime || new Date().toISOString()
       
       const { data, error: err } = await supabase
@@ -18,15 +17,12 @@ export function useRooms() {
           check_datetime: targetDateTime
         })
 
-      console.log('Rooms availability response:', data)
-      console.log('Rooms availability error:', err)
 
       if (err) {
         error.value = err
         console.error('Error fetching rooms availability:', err)
         rooms.value = []
       } else {
-        // Transform the response to match expected structure
         rooms.value = (data || []).map(row => ({
           id: row.room_id,
           name: row.room_name,

@@ -10,19 +10,28 @@
                 <FormTextField v-model="formData.fullname" label="Nombre Completo" id="fullname"
                     placeholder="Ingrese el nombre completo" required :error="errors.fullname" />
 
-                <FormTextField v-model="formData.cuil" label="CUIL" id="cuil" placeholder="Ingrese el CUIL" required
-                    :error="errors.cuil" />
-            </FormFieldsContainer>
-            <FormFieldsContainer>
                 <FormEmailField v-model="formData.email" label="Email" id="email" placeholder="profesional@ejemplo.com"
                     required :error="errors.email" />
             </FormFieldsContainer>
+
             <FormFieldsContainer>
                 <FormPasswordField v-model="formData.password" label="Contraseña" id="password"
                     placeholder="Escriba una contraseña" required :error="errors.password" />
 
                 <FormPasswordField v-model="formData.confirmPassword" label="Confirmar Contraseña" id="confirmPassword"
                     placeholder="Repita la contraseña" required :error="errors.confirmPassword" />
+            </FormFieldsContainer>
+
+            <FormFieldsContainer>
+                <FormTextField v-model="formData.cuil" label="CUIL" id="cuil" placeholder="Ingrese el CUIL" required
+                    :error="errors.cuil" />
+
+                <FormSelect v-model="formData.turno" label="Turno" id="turno"
+                    placeholder="Seleccione un turno" required :error="errors.turno"
+                    :options="[
+                        { value: 'Matutino', label: 'Matutino' },
+                        { value: 'Vespertino', label: 'Vespertino' }
+                    ]" />
             </FormFieldsContainer>
 
             <FormFieldsContainer>
@@ -67,6 +76,7 @@ const formData = reactive({
     fullname: '',
     cuil: '',
     email: '',
+    turno: '',
     password: '',
     confirmPassword: '',
     specializations: [],
@@ -77,6 +87,7 @@ const errors = reactive({
     fullname: '',
     cuil: '',
     email: '',
+    turno: '',
     password: '',
     confirmPassword: ''
 })
@@ -92,7 +103,6 @@ onMounted(async () => {
     }
 })
 
-// Computed para formatear las opciones de especializaciones
 const specializationOptions = computed(() => {
     return specializations.value.map(spec => ({
         value: spec.id.toString(),
@@ -100,13 +110,11 @@ const specializationOptions = computed(() => {
     }))
 })
 
-// Computed para filtrar y formatear las sub-especializaciones
 const filteredSubspecializationOptions = computed(() => {
     if (!formData.specializations || formData.specializations.length === 0) {
         return []
     }
 
-    // No convertir a número - comparar como strings (UUIDs)
     const selectedSpecIds = formData.specializations
 
     const filtered = subSpecializations.value.filter(subspec => {
@@ -119,13 +127,10 @@ const filteredSubspecializationOptions = computed(() => {
     }))
 })
 
-// Limpiar sub-especializaciones cuando cambian las especializaciones
 watch(() => formData.specializations, (newSpecs) => {
     if (newSpecs.length === 0) {
         formData.subspecializations = []
     } else {
-        // Filtrar sub-especializaciones que ya no son válidas
-        // Comparar como strings (UUIDs)
         formData.subspecializations = formData.subspecializations.filter(subId => {
             const subspec = subSpecializations.value.find(s => s.id.toString() === subId)
             return subspec && newSpecs.includes(subspec.specialization_id)
@@ -165,6 +170,11 @@ const validateForm = () => {
             errors.email = 'Formato de email inválido'
             isValid = false
         }
+    }
+
+    if (!formData.turno) {
+        errors.turno = 'El turno es requerido'
+        isValid = false
     }
 
     if (!formData.password) {
@@ -215,6 +225,7 @@ const handleSubmit = async () => {
                 fullname: formData.fullname.trim(),
                 cuil: formData.cuil.trim(),
                 email: formData.email.trim().toLowerCase(),
+                shift: formData.turno.toLowerCase(),
                 password: formData.password,
                 specializations: formData.specializations.length > 0 ? formData.specializations : undefined,
                 subspecializations: formData.subspecializations.length > 0 ? formData.subspecializations : undefined

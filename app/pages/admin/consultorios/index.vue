@@ -34,6 +34,10 @@ const { success: showSuccess, error: showError } = useNotification()
 const tabla = {
     columns: [
         {
+            key: 'id',
+            label: 'ID',
+        },
+        {
             key: 'name',
             label: 'Nombre',
         },

@@ -102,7 +102,6 @@ onMounted(async () => {
 const handleSearch = async () => {
     hasSearched.value = true
 
-    // Función helper para obtener la primera especialización o texto por defecto
     const getSpecialtyName = (doctor) => {
         if (doctor.doctor_specializations && doctor.doctor_specializations.length > 0) {
             const firstSpec = doctor.doctor_specializations[0]
@@ -111,8 +110,6 @@ const handleSearch = async () => {
         return 'Sin especialidad'
     }
 
-    // TODO: Implementar búsqueda real con filtros
-    // Por ahora, mostramos todos los profesionales si hay query de búsqueda
     if (searchQuery.value.trim()) {
         searchResults.value = doctors.value.filter(doctor =>
             doctor.fullname?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||

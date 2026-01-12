@@ -38,7 +38,47 @@ onMounted(async () => {
 const handleSubmit = async (doctorData) => {
     try {
         const id = route.params.id
-        await updateDoctor(id, doctorData)
+        const supabase = useSupabaseClient()
+
+        const { cuil, fullname, shift, specializations, subspecializations } = doctorData
+        await updateDoctor(id, { cuil, fullname, shift })
+
+        if (specializations !== undefined) {
+            await supabase
+                .from('doctor_specializations')
+                .delete()
+                .eq('doctor_id', id)
+
+            if (specializations.length > 0) {
+                const specializationsData = specializations.map(specId => ({
+                    doctor_id: id,
+                    specialization_id: specId
+                }))
+
+                await supabase
+                    .from('doctor_specializations')
+                    .insert(specializationsData)
+            }
+        }
+
+        if (subspecializations !== undefined) {
+            await supabase
+                .from('doctor_sub_specializations')
+                .delete()
+                .eq('doctor_id', id)
+
+            if (subspecializations.length > 0) {
+                const subspecializationsData = subspecializations.map(subSpecId => ({
+                    doctor_id: id,
+                    sub_specialization_id: subSpecId
+                }))
+
+                await supabase
+                    .from('doctor_sub_specializations')
+                    .insert(subspecializationsData)
+            }
+        }
+
         showSuccess('Profesional actualizado correctamente')
         navigateTo(ROUTE_NAMES.ADMIN.PROFESSIONALS)
     } catch (err) {

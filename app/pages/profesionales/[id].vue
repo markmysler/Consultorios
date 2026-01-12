@@ -59,12 +59,10 @@ onMounted(async () => {
         const id = route.params.id
         await fetchDoctorById(id)
 
-        // Cargar agenda del profesional
         if (currentDoctor.value) {
             scheduleLoading.value = true
             const schedule = await getDoctorWeeklySchedule(id)
 
-            // Transformar el schedule del composable al formato que espera el template
             weekSchedule.value = dayNames.map(dayName => {
                 const daySchedule = schedule[dayName] || []
                 return {
