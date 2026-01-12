@@ -30,6 +30,7 @@
                 label="Hora de Inicio"
                 id="start_time"
                 required
+                :maxTime="maxStartTime"
                 :error="errors.start_time"
             />
 
@@ -38,6 +39,7 @@
                 label="Hora de Fin"
                 id="end_time"
                 required
+                :minTime="minEndTime"
                 :error="errors.end_time"
             />
         </FormFieldsContainer>
@@ -133,6 +135,50 @@ const formData = reactive({
     valid_to: props.initialData?.valid_to ? new Date(props.initialData.valid_to).toISOString().split('T')[0] : null
 })
 
+// Helper to add minutes to a time string
+const addMinutesToTime = (timeStr, minutes) => {
+    if (!timeStr) return null
+    const [hours, mins] = timeStr.split(':').map(Number)
+    const totalMinutes = hours * 60 + mins + minutes
+    const newHours = Math.floor(totalMinutes / 60)
+    const newMins = totalMinutes % 60
+    return `${String(newHours).padStart(2, '0')}:${String(newMins).padStart(2, '0')}`
+}
+
+// Computed property for max start time (end_time - 1 minute, or no restriction if end_time not set)
+const maxStartTime = computed(() => {
+    if (!formData.end_time) return null
+    // Subtract 1 minute from end_time to prevent start_time === end_time
+    return addMinutesToTime(formData.end_time, -1)
+})
+
+// Computed property for min end time (start_time + 1 minute, or no restriction if start_time not set)
+const minEndTime = computed(() => {
+    if (!formData.start_time) return null
+    // Add 1 minute to start_time to prevent end_time === start_time
+    return addMinutesToTime(formData.start_time, 1)
+})
+
+// Watch start_time changes to clear end_time if it becomes invalid
+watch(() => formData.start_time, (newStartTime) => {
+    if (newStartTime && formData.end_time) {
+        if (newStartTime >= formData.end_time) {
+            formData.end_time = ''
+            errors.end_time = ''
+        }
+    }
+})
+
+// Watch end_time changes to clear start_time if it becomes invalid
+watch(() => formData.end_time, (newEndTime) => {
+    if (newEndTime && formData.start_time) {
+        if (formData.start_time >= newEndTime) {
+            formData.start_time = ''
+            errors.start_time = ''
+        }
+    }
+})
+
 const initializeSelectedDays = () => {
     if (props.initialData?.days_of_week) {
         // Si days_of_week es un array, convertir a strings
@@ -168,6 +214,13 @@ onMounted(async () => {
 })
 
 const handleSubmit = () => {
+    // Validate that start_time is before end_time
+    if (formData.start_time && formData.end_time && formData.start_time >= formData.end_time) {
+        errors.start_time = 'La hora de inicio debe ser anterior a la hora de fin'
+        errors.end_time = 'La hora de fin debe ser posterior a la hora de inicio'
+        return
+    }
+
     // Convertir los días seleccionados a un array de números
     const daysArray = selectedDays.value.map(day => parseInt(day))
 
