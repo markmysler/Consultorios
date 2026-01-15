@@ -10,8 +10,8 @@
                 <FormSelect v-model="selectedSector" label="Sector" placeholder="Todos" id="sector"
                     :options="floorOptions" clearable />
 
-                <FormSelect v-model="selectedNumber" label="Número" placeholder="Todos" id="number"
-                    :options="roomOptions" clearable />
+                <FormSelect v-model="selectedNumber" label="Número" placeholder="Seleccione un sector primero" id="number"
+                    :options="roomOptions" :disabled="!selectedSector" clearable />
             </FormFieldsContainer>
 
             <FormFieldsContainer>
@@ -120,14 +120,17 @@ const floorOptions = computed(() => {
 })
 
 const roomOptions = computed(() => {
-    const availableRooms = selectedSector.value
-        ? rooms.value.filter(room => room.floor_id === selectedSector.value)
-        : rooms.value
+    if (!selectedSector.value) return []
+    return rooms.value
+        .filter(room => room.floor_id === selectedSector.value)
+        .map(room => ({
+            value: room.id,
+            label: room.name
+        }))
+})
 
-    return availableRooms.map(room => ({
-        value: room.id,
-        label: room.name
-    }))
+watch(selectedSector, () => {
+    selectedNumber.value = ''
 })
 
 const specialtyOptions = computed(() => {
