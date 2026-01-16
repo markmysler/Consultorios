@@ -40,8 +40,26 @@ const handleSubmit = async (doctorData) => {
         const id = route.params.id
         const supabase = useSupabaseClient()
 
-        const { cuil, fullname, shift, specializations, subspecializations } = doctorData
-        await updateDoctor(id, { cuil, fullname, shift })
+        const { cuil, fullname, shifts, specializations, subspecializations } = doctorData
+        await updateDoctor(id, { cuil, fullname })
+
+        if (shifts !== undefined) {
+            await supabase
+                .from('doctor_shifts')
+                .delete()
+                .eq('doctor_id', id)
+
+            if (shifts.length > 0) {
+                const shiftsData = shifts.map(shiftId => ({
+                    doctor_id: id,
+                    shift_id: shiftId
+                }))
+
+                await supabase
+                    .from('doctor_shifts')
+                    .insert(shiftsData)
+            }
+        }
 
         if (specializations !== undefined) {
             await supabase

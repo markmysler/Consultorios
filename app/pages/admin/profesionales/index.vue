@@ -42,11 +42,16 @@ const tabla = {
             label: 'CUIL',
         },
         {
-            key: 'shift',
-            label: 'Turno',
-            format: (value) => {
-                if (!value) return '-'
-                return value.charAt(0).toUpperCase() + value.slice(1)
+            key: 'shifts',
+            label: 'Turnos',
+            format: (_value, row) => {
+                if (!row.doctor_shifts || row.doctor_shifts.length === 0) {
+                    return '-'
+                }
+                return row.doctor_shifts
+                    .map(ds => ds.shifts?.name)
+                    .filter(Boolean)
+                    .join(', ')
             }
         },
         {

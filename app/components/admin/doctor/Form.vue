@@ -10,12 +10,9 @@
         <FormFieldsContainer>
             <FormTextField v-model="formData.cuil" label="CUIL" id="cuil" placeholder="Ingrese el CUIL" required
                 :error="errors.cuil" />
-            <FormSelect v-model="formData.turno" label="Turno" id="turno"
-                placeholder="Seleccione un turno" required :error="errors.turno"
-                :options="[
-                    { value: 'Matutino', label: 'Matutino' },
-                    { value: 'Vespertino', label: 'Vespertino' }
-                ]" />
+            <FormSelectMultiple v-model="formData.shifts" label="Turnos" id="shifts"
+                placeholder="Seleccione turnos" :options="shiftOptions"
+                :loading="!shifts.length" />
         </FormFieldsContainer>
 
         <FormFieldsContainer>
@@ -46,6 +43,7 @@
 const { error: showValidationError } = useNotification()
 const { specializations, fetchSpecializations } = useSpecializations()
 const { subSpecializations, fetchSubSpecializations } = useSubSpecializations()
+const { shifts, fetchShifts } = useShifts()
 
 const props = defineProps({
     isEditing: {
@@ -66,7 +64,7 @@ const formData = reactive({
     cuil: '',
     fullname: '',
     email: '',
-    turno: '',
+    shifts: [],
     specializations: [],
     subspecializations: []
 })
@@ -75,17 +73,18 @@ const errors = reactive({
     cuil: '',
     fullname: '',
     email: '',
-    turno: ''
+    shifts: ''
 })
 
 onMounted(async () => {
     try {
         await Promise.all([
             fetchSpecializations(),
-            fetchSubSpecializations()
+            fetchSubSpecializations(),
+            fetchShifts()
         ])
     } catch (err) {
-        console.error('Error loading specializations:', err)
+        console.error('Error loading data:', err)
     }
 
     if (props.isEditing && props.initialData) {
@@ -93,11 +92,18 @@ onMounted(async () => {
             cuil: props.initialData.cuil || '',
             fullname: props.initialData.fullname || '',
             email: props.initialData.email || '',
-            turno: props.initialData.shift ? (props.initialData.shift.charAt(0).toUpperCase() + props.initialData.shift.slice(1)) : '',
+            shifts: props.initialData.doctor_shifts?.map(ds => ds.shift_id) || [],
             specializations: props.initialData.doctor_specializations?.map(ds => ds.specialization_id) || [],
             subspecializations: props.initialData.doctor_sub_specializations?.map(dss => dss.sub_specialization_id) || []
         })
     }
+})
+
+const shiftOptions = computed(() => {
+    return shifts.value.map(shift => ({
+        value: shift.id.toString(),
+        label: shift.name
+    }))
 })
 
 const specializationOptions = computed(() => {
@@ -169,8 +175,8 @@ const validateForm = () => {
         }
     }
 
-    if (!formData.turno) {
-        errors.turno = 'El turno es requerido'
+    if (!formData.shifts || formData.shifts.length === 0) {
+        errors.shifts = 'Debe seleccionar al menos un turno'
         isValid = false
     }
 
@@ -191,7 +197,7 @@ const handleSubmit = async () => {
         const doctorData = {
             cuil: formData.cuil.trim(),
             fullname: formData.fullname.trim(),
-            shift: formData.turno.toLowerCase(),
+            shifts: formData.shifts.length > 0 ? formData.shifts : undefined,
             specializations: formData.specializations.length > 0 ? formData.specializations : undefined,
             subspecializations: formData.subspecializations.length > 0 ? formData.subspecializations : undefined
         }

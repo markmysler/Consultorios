@@ -26,12 +26,9 @@
                 <FormTextField v-model="formData.cuil" label="CUIL" id="cuil" placeholder="Ingrese el CUIL" required
                     :error="errors.cuil" />
 
-                <FormSelect v-model="formData.turno" label="Turno" id="turno"
-                    placeholder="Seleccione un turno" required :error="errors.turno"
-                    :options="[
-                        { value: 'Matutino', label: 'Matutino' },
-                        { value: 'Vespertino', label: 'Vespertino' }
-                    ]" />
+                <FormSelectMultiple v-model="formData.shifts" label="Turnos" id="shifts"
+                    placeholder="Seleccione turnos" :options="shiftOptions"
+                    :loading="!shifts.length" />
             </FormFieldsContainer>
 
             <FormFieldsContainer>
@@ -69,6 +66,7 @@ const router = useRouter()
 
 const { specializations, fetchSpecializations } = useSpecializations()
 const { subSpecializations, fetchSubSpecializations } = useSubSpecializations()
+const { shifts, fetchShifts } = useShifts()
 
 const submitting = ref(false)
 
@@ -76,7 +74,7 @@ const formData = reactive({
     fullname: '',
     cuil: '',
     email: '',
-    turno: '',
+    shifts: [],
     password: '',
     confirmPassword: '',
     specializations: [],
@@ -87,7 +85,7 @@ const errors = reactive({
     fullname: '',
     cuil: '',
     email: '',
-    turno: '',
+    shifts: '',
     password: '',
     confirmPassword: ''
 })
@@ -96,11 +94,19 @@ onMounted(async () => {
     try {
         await Promise.all([
             fetchSpecializations(),
-            fetchSubSpecializations()
+            fetchSubSpecializations(),
+            fetchShifts()
         ])
     } catch (err) {
-        console.error('Error loading specializations:', err)
+        console.error('Error loading data:', err)
     }
+})
+
+const shiftOptions = computed(() => {
+    return shifts.value.map(shift => ({
+        value: shift.id.toString(),
+        label: shift.name
+    }))
 })
 
 const specializationOptions = computed(() => {
@@ -172,8 +178,8 @@ const validateForm = () => {
         }
     }
 
-    if (!formData.turno) {
-        errors.turno = 'El turno es requerido'
+    if (!formData.shifts || formData.shifts.length === 0) {
+        errors.shifts = 'Debe seleccionar al menos un turno'
         isValid = false
     }
 
@@ -225,7 +231,7 @@ const handleSubmit = async () => {
                 fullname: formData.fullname.trim(),
                 cuil: formData.cuil.trim(),
                 email: formData.email.trim().toLowerCase(),
-                shift: formData.turno.toLowerCase(),
+                shifts: formData.shifts.length > 0 ? formData.shifts : undefined,
                 password: formData.password,
                 specializations: formData.specializations.length > 0 ? formData.specializations : undefined,
                 subspecializations: formData.subspecializations.length > 0 ? formData.subspecializations : undefined
