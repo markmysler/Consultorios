@@ -107,6 +107,7 @@ onMounted(async () => {
 
 const handleSearch = async () => {
     hasSearched.value = true
+    const supabase = useSupabaseClient()
 
     const getSpecialtyName = (doctor) => {
         if (doctor.doctor_specializations && doctor.doctor_specializations.length > 0) {
@@ -116,20 +117,37 @@ const handleSearch = async () => {
         return 'Sin especialidad'
     }
 
-    if (searchQuery.value.trim()) {
-        searchResults.value = doctors.value.filter(doctor =>
-            doctor.fullname?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-            doctor.cuil?.includes(searchQuery.value)
-        ).map(doctor => ({
-            ...doctor,
-            specialty: getSpecialtyName(doctor)
-        }))
-    } else {
-        searchResults.value = doctors.value.map(doctor => ({
-            ...doctor,
-            specialty: getSpecialtyName(doctor)
-        }))
+    // Prepare filter parameters
+    const filters = {
+        p_search_query: searchQuery.value.trim() || null,
+        p_specialty_id: selectedSpecialty.value || null,
+        p_shift_ids: (selectedShifts.value && selectedShifts.value.length > 0) ? selectedShifts.value : null,
+        p_day_of_week: null,
+        p_time: null,
+        p_date: null
     }
+
+    // Add schedule filters ONLY if BOTH date and time are specified
+    if (specifySchedule.value === 'yes' && scheduleDate.value && scheduleTime.value) {
+        const date = new Date(scheduleDate.value)
+        // Convert JS day (0=Sun, 1=Mon, ..., 6=Sat) to DB day (1=Mon, ..., 7=Sun)
+        filters.p_day_of_week = date.getDay() + 1
+        filters.p_time = scheduleTime.value
+        filters.p_date = scheduleDate.value // Pass date for leave request checking
+    }
+    // Call the Postgres function
+    const { data, error } = await supabase.rpc('search_doctors', filters)
+
+    if (error) {
+        console.error('Error searching doctors:', error)
+        searchResults.value = []
+        return
+    }
+
+    searchResults.value = (data || []).map(doctor => ({
+        ...doctor,
+        specialty: getSpecialtyName(doctor)
+    }))
 }
 
 const handleProfessionalClick = (id) => {

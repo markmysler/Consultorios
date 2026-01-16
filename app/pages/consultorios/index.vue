@@ -150,26 +150,38 @@ onMounted(async () => {
 
 const handleSearch = async () => {
     hasSearched.value = true
+    const supabase = useSupabaseClient()
 
-    let results = [...rooms.value]
-
-    if (searchQuery.value.trim()) {
-        results = results.filter(room =>
-            room.name?.toLowerCase().includes(searchQuery.value.toLowerCase())
-        )
+    // Prepare filter parameters
+    const filters = {
+        p_search_query: searchQuery.value.trim() || null,
+        p_sector_id: selectedSector.value || null,
+        p_room_id: selectedNumber.value || null,
+        p_specialty_id: selectedSpecialty.value || null,
+        p_availability: selectedAvailability.value || null,
+        p_day_of_week: null,
+        p_time: null
     }
 
-    if (selectedSector.value) {
-        results = results.filter(room => room.floor_id === selectedSector.value)
+    // Add date/time filters if provided
+    if (filterDate.value && filterTime.value) {
+        const date = new Date(filterDate.value)
+        // Convert JS day (0=Sun, 1=Mon, ..., 6=Sat) to DB day (1=Mon, ..., 7=Sun)
+        filters.p_day_of_week = date.getDay() + 1
+        filters.p_time = filterTime.value
     }
 
-    if (selectedNumber.value) {
-        results = results.filter(room => room.id === selectedNumber.value)
+    // Call the Postgres function
+    const { data, error } = await supabase.rpc('search_rooms', filters)
+
+    if (error) {
+        console.error('Error searching rooms:', error)
+        searchResults.value = []
+        return
     }
 
-    searchResults.value = results.map(room => {
-        const floor = floors.value.find(f => f.id === room.floor_id)
-        const sectorName = floor ? floor.name : 'desconocido'
+    searchResults.value = (data || []).map(room => {
+        const sectorName = room.floor_name || 'desconocido'
         const displaySector = sectorName.length <= 3 ? `Sector ${sectorName}` : sectorName
         return {
             ...room,
