@@ -17,6 +17,9 @@ export function useDoctors() {
         ),
         doctor_sub_specializations (
           sub_specializations ( id, name )
+        ),
+        doctor_shifts (
+          shifts ( id, name )
         )
       `)
       .order('fullname')
@@ -39,6 +42,10 @@ export function useDoctors() {
         doctor_sub_specializations (
           sub_specialization_id,
           sub_specializations ( id, name )
+        ),
+        doctor_shifts (
+          shift_id,
+          shifts ( id, name )
         )
       `)
       .eq('id', id)

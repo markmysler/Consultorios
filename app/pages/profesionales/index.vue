@@ -68,6 +68,7 @@ import { useSpecializations } from '~/composables/useSpecializations.js'
 
 const { doctors, fetchDoctors } = useDoctors()
 const { specializations, fetchSpecializations } = useSpecializations()
+const { shifts, fetchShifts } = useShifts()
 
 const searchQuery = ref('')
 const selectedSpecialty = ref('')
@@ -86,16 +87,21 @@ const specialtyOptions = computed(() => {
     }))
 })
 
-const shiftOptions = [
-    { value: 'morning', label: 'Matutino' },
-    { value: 'evening', label: 'Vespertino' }
-]
+const shiftOptions = computed(() => {
+    if (!shifts.value || shifts.value.length === 0) {
+        return []
+    }
+    return shifts.value.map(shift => ({
+        value: shift.id,
+        label: shift.name
+    }))
+})
 
 onMounted(async () => {
     try {
-        await Promise.all([fetchDoctors(), fetchSpecializations()])
+        await Promise.all([fetchDoctors(), fetchSpecializations(), fetchShifts()])
     } catch (err) {
-        console.error('Error loading doctors:', err)
+        console.error('Error loading data:', err)
     }
 })
 
