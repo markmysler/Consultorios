@@ -3,8 +3,8 @@
         <FormFieldsContainer>
             <FormTextField v-model="formData.fullname" label="Nombre Completo" id="fullname"
                 placeholder="Ingrese el nombre completo" required :error="errors.fullname" />
-            <FormEmailField v-model="formData.email" label="Email" id="email" placeholder="profesional@ejemplo.com"
-                required :error="errors.email" :disabled="isEditing" />
+            <FormEmailField v-if="!isEditing" v-model="formData.email" label="Email" id="email" placeholder="profesional@ejemplo.com"
+                required :error="errors.email" />
         </FormFieldsContainer>
 
         <FormFieldsContainer>
@@ -197,9 +197,9 @@ const handleSubmit = async () => {
         const doctorData = {
             cuil: formData.cuil.trim(),
             fullname: formData.fullname.trim(),
-            shifts: formData.shifts.length > 0 ? formData.shifts : undefined,
-            specializations: formData.specializations.length > 0 ? formData.specializations : undefined,
-            subspecializations: formData.subspecializations.length > 0 ? formData.subspecializations : undefined
+            shifts: formData.shifts || [],
+            specializations: formData.specializations || [],
+            subspecializations: formData.subspecializations || []
         }
 
         if (!props.isEditing && formData.email) {
